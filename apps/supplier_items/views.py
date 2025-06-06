@@ -35,12 +35,10 @@ def product_create(request):
             messages.error(
                 request, "Hubo un error en el formulario. Por favor, revisa los campos.")
             # Vamos a guardar los errores en una variable de sesión para mostrarlos en el formulario
-            return HttpResponse(form.errors.as_json(), status=400)
             return redirect('supplier_items:product_create')
     else:
         # '/' es la página de fallback
         return redirect(request.META.get('HTTP_REFERER', '/'))
-
 
 @login_required()
 def product_update(request, pk):

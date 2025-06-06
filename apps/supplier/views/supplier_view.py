@@ -30,36 +30,11 @@ def supplier_update(request, user_id):
         # Redirige al formulario de creación si no existe el proveedor
         return redirect('supplier_create', user_id=user.id)
 
-    # # Si el proveedor existe, permite editar
-    # if request.method == 'POST':
-    #     form = SupplierForm(request.POST, request.FILES, instance=supplier)
-    #     if form.is_valid():
-    #         form.save()
-    #         messages.success(
-    #             request, f'¡El proveedor {form.cleaned_data.get('company_name')} fue actualizado correctamente!')
-    #         # '/' es la página de fallback
-    #         return redirect(request.META.get('HTTP_REFERER', '/'))
-    # else:
-    #     form = SupplierForm(instance=supplier)
-
-    return render(request, 'supplier/supplier_update.html', {'form': form, 'supplier': supplier})
+    return render(request, 'supplier/supplier_update.html', {'supplier': supplier})
 
 
 @login_required
 def supplier_create(request, user_id):
+    """Vista de creación de proveedores."""
     user = get_object_or_404(User, id=user_id)
-
-    # if request.method == 'POST':
-    #     form = SupplierForm(request.POST, request.FILES)
-    #     if form.is_valid():
-    #         supplier = form.save(commit=False)
-    #         supplier.user = user  # Asocia el proveedor con el usuario
-    #         supplier.save()
-    #         messages.success(
-    #             request, f'¡El proveedor {form.cleaned_data.get('company_name')} fue actualizado correctamente!')
-    #         # Redirige a la vista de edición después de crear
-    #         return redirect('supplier_update', user_id=user.id)
-    # else:
-    #     form = SupplierForm()
-
-    return render(request, 'supplier/supplier_create.html', {'form': form, 'user': user})
+    return render(request, 'supplier/supplier_create.html', {'user': user})

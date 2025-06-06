@@ -427,7 +427,6 @@ def show_suppliers_table(request):
 @login_required
 def show_catsuppliers(request):
     """Vista para mostrar los proveedores del sistema."""
-    print(request.method)
     if request.method == 'GET':
         # Lógica para solicitud GET
         return render(request, 'accounts/show_catsuppliers.html')
@@ -704,8 +703,6 @@ def import_suppliers_from_excel(request):
                     "category": row[13],
                     "notes": row[14],
                 }
-
-                print(supplier_data)
 
                 # Actualizar el proveedor correspondiente al id de la columna A (row[0])
                 supplier, created = CatSupplier.objects.update_or_create(

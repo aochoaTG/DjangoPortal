@@ -139,21 +139,8 @@ def request_quote(request):
 
 @login_required
 def quote_requests(request):
-    # if request.user.is_staff:
-    #     # Si el usuario es staff, entonces vamos a obtener todas las solicitudes de cotización
-    #     print("Es staff")
-    #     quote_requests = SupplierQuoteRequest.objects.all()
-    #     return render(request, 'supplier/quote_requests.html', {'quote_requests': quote_requests})
-    # else:
-    #     # Si el usuario no es staff, entonces es proveedor. Vamos a obtener solo las solicitudes de cotización del proveedor
-    #     print("Es proveedor")
-    #     supplier = Supplier.objects.get(user=request.user)
-    #     # Vamos a imprimir los datos de supplier
-    #     print(f"[DEBUG] Proveedor: {supplier} | ID: {supplier.id} | Usuario: {supplier.user} | Nombre: {supplier.company_name}")
-    #     # Vamos a obtener las solicitudes de cotización del proveedor donde supplier es el proveedor del usuario
-    #     quote_requests = SupplierQuoteRequest.objects.filter(supplier=supplier).order_by('created_at')
-
-        return render(request, 'supplier/quote_requests.html')
+    """ Vista para mostrar las solicitudes de cotización del proveedor. """
+    return render(request, 'supplier/quote_requests.html')
 
 
 def delete_quote_request(request, id):
@@ -294,8 +281,6 @@ def edit_quote_request(request, pk):
             return redirect('quote_requests')
         else:
             messages.error(request, "Formulario o formset no válidos. Por favor, corrige los errores.")
-            print("Errores del formulario:", header_form.errors)
-            print("Errores del formset:", formset.errors)
             return render(request, 'supplier/rfq_form.html', {
                 'quote_form': header_form,
                 'item_formset': formset,

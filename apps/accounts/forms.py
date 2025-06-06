@@ -233,13 +233,6 @@ class CustomSupplierCreationForm(UserCreationForm):
             user.save()
         return user
 
-    def clean_email(self):
-        """Valida que el correo electrónico no esté en uso"""
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise ValidationError(_("Este correo electrónico ya está en uso."))
-        return email
-
     def clean_rfc(self):
         """Valida que el RFC no esté en uso y lo utiliza como username"""
         rfc = self.cleaned_data.get('rfc').upper()
@@ -271,23 +264,6 @@ class CustomSupplierCreationForm(UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise ValidationError(_("Este correo electrónico ya está en uso."))
         return email
-
-    def clean_rfc(self):
-        """Valida que el RFC no esté en uso"""
-        rfc = self.cleaned_data.get('rfc')
-        if Supplier.objects.filter(rfc=rfc).exists():
-            raise ValidationError(_("Este RFC ya está registrado en el sistema."))
-        # Validar formato de RFC
-        if not self.validate_rfc_format(rfc):
-            raise ValidationError(_("El formato del RFC no es válido."))
-        return rfc
-    
-    def validate_rfc_format(self, rfc):
-        """Valida el formato del RFC (versión simplificada)"""
-        import re
-        # Expresión regular para validar RFC mexicano (versión simplificada)
-        rfc_pattern = r'^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$'
-        return bool(re.match(rfc_pattern, rfc.upper()))
 
 
 class StaffUserCreationForm(UserCreationForm):

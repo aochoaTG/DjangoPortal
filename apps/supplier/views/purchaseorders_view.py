@@ -14,7 +14,7 @@ def validate_date(date_str):
     except ValueError:
         return None
     
-@cache_page(10)  # Cache por 15 minutos
+@cache_page(10)
 @login_required
 def purchase_orders(request):
     default_days_ago = 3
