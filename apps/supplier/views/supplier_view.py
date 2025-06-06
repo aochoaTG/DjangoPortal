@@ -5,11 +5,13 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 # from apps.supplier.forms import SupplierForm
 from apps.supplier.models import Supplier
+from django.contrib.admin.views.decorators import staff_member_required
 
-
+@staff_member_required
 @login_required
 def index(request):
     """Vista de inicio."""
+    
     return render(request, 'administrator/index.html')
 
 
