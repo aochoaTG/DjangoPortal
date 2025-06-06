@@ -1,0 +1,75 @@
+{% extends 'layouts/base_admin.html' %}
+{% load static %}
+{% block page_title %} Detalles del producto {% endblock %}
+{% block title %}Detalles del producto{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+            <h1>{{ product.name }}</h1>
+
+            <div class="card">
+              <div class="row g-0">
+                <div class="col-md-4">
+                    {% if product.image %}
+                        <div class="text-center">
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid" style="max-width: 300px;">
+                        </div>
+                    {% else %}
+                        <p>No hay imagen disponible para este producto.</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-8">
+                  <div class="card-body">
+                    <h5 class="card-title">Detalles del Producto/Servicio</h5>
+                    <dl class="row">
+                        <dt class="col-sm-3">Tipo</dt>
+                        <dd class="col-sm-9">{{ product.get_type_display }}</dd>
+                        <dt class="col-sm-3">Descripción</dt>
+                        <dd class="col-sm-9">{{ product.description }}</dd>
+                        <dt class="col-sm-3">Precio</dt>
+                        <dd class="col-sm-9">${{ product.price }}</dd>
+                        <dt class="col-sm-3">Categoría</dt>
+                        <dd class="col-sm-9">{{ product.category.name }}</dd>
+                        <dt class="col-sm-3">Unidad de medida</dt>
+                        <dd class="col-sm-9">{{ product.unit }}</dd>
+                        <dt class="col-sm-3">Fecha de Creación</dt>
+                        <dd class="col-sm-9">{{ product.created_at }}</dd>
+                        <dt class="col-sm-3">Última Actualización</dt>
+                        <dd class="col-sm-9">{{ product.updated_at }}</dd>
+                        <dt class="col-sm-3">Notas</dt>
+                        <dd class="col-sm-9">{{ product.notes }}</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="{% url 'supplier_items:list' %}" class="btn btn-secondary"><i class="mdi mdi-arrow-left"></i> Volver al Listado</a>
+                <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#productModal" data-action="edit" data-id="{{ product.id }}" class="btn btn-warning"><i class="mdi mdi-lead-pencil"></i>
+                    Editar
+                </a>
+                <form action="{% url 'supplier_items:product_delete' product.pk %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="mdi mdi-close"></i>
+                        Eliminar
+                    </button>
+                </form>
+            </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body" id="productModalContent">
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/supplier_items.js' %}"></script>
+{% endblock %}

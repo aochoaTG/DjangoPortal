@@ -1,0 +1,110 @@
+{% extends 'layouts/base_admin.html' %}
+{% load static %}
+{% block page_title %} Lista {% endblock %}
+{% block title %}Lista{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 10)">10</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 25)">25</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 50)">50</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 100)">100</a></li>
+                                </ul>
+                            </div>
+                            <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#notices_table')" ><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                            <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#notices_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                            <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#notices_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+                            <button type="button" class="ms-1 btn btn-secondary" data-bs-toggle="modal" data-bs-target="#productModal" data-action="create"><i class="mdi mdi-plus" data-bs-toggle="tooltip" title="Agregar"></i> Agregar</button>
+                        </div>
+                    </span>
+                    <div class="d-flex align-items-center">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+                            <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#notices_table">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-sm text-center" style="font-size: small" id="product_table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Precio</th>
+                                <th>Moneda</th>
+                                <th>UdM</th>
+                                <th>Categoría</th>
+                                <th>Fecha creación</th>
+                                <th>Notas</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.get_type_display }}</td>
+                                <td>{{ product.description }}</td>
+                                <td>${{ product.price }}</td>
+                                <td>{{ product.currency }}</td>
+                                <td>{{ product.unit }}</td>
+                                <td>{{ product.category.name }}</td>
+                                <td>{{ product.created_at }}</td>
+                                <td>{{ product.notes }}</td>
+                                <td>
+                                    <!-- Example single danger button -->
+                                    <div class="btn-group">
+                                      <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Acciones
+                                      </button>
+                                      <ul class="dropdown-menu">
+                                        <li>
+                                            <a href="{% url 'supplier_items:product_detail' product.pk %}" class="dropdown-item"><i class="mdi mdi-eye"></i> Ver</a>
+                                        </li>
+                                        <li>
+                                            <a href="javascript:void(0);" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#productModal" data-action="edit" data-id="{{ product.id }}"><i class="mdi mdi-lead-pencil"></i> Editar</a>
+                                        </li>
+                                        <li>
+                                            <!-- Formulario para eliminar el producto -->
+                                            <form action="{% url 'supplier_items:product_delete' product.pk %}" method="POST" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item text-danger"><i class="mdi mdi-close"></i> Eliminar</button>
+                                            </form>
+                                        </li>
+                                      </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body" id="productModalContent">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/supplier_items.js' %}"></script>
+{% endblock %}

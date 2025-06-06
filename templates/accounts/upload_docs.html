@@ -1,0 +1,530 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Carga de documentos</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'admintemplate/assets/images/logo-icon.png' %}"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="bg-primary text-white py-3">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <img src="{% static 'admintemplate/assets/images/logo-text1.png' %}" class="img-fluid" alt="TotalGas" style="max-width: 200px;">
+                <h2 class="mb-0 text-light ms-4">CARGA DE DOCUMENTOS</h2>
+            </div>
+
+            <!-- Notificaciones -->
+            <div class="position-relative dropdown">
+                <a href="#" id="notificationToggle" class="text-white fs-4" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-bell"></i>
+                    <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+                </a>
+
+                <!-- Dropdown -->
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationToggle" id="notificationMenu">
+                    <li><h6 class="dropdown-header">Notificaciones</h6></li>
+                    <li><a class="dropdown-item" href="#">Documento Aprobado</a></li>
+                    <li><a class="dropdown-item" href="#">Nuevo Documento Cargado</a></li>
+                    <li><a class="dropdown-item" href="#">Revisión Pendiente</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-center" href="#">Ver todas</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- Subheader -->
+    <div class="bg-success text-white py-2">
+    <div class="container d-flex justify-content-between align-items-center">
+        <strong>Proveedores / Documentos</strong>
+        <span class="badge bg-warning text-dark">● Solicitud en proceso</span>
+    </div>
+    </div>
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Captura tus documentos, por favor...</h2>
+        </div>
+    
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">{{ supplier.name }}</h5>
+            </div>
+            <div class="card-body">
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30%">Documento</th>
+                                <th style="width: 15%">Requerido</th>
+                                <th style="width: 15%">Estado</th>
+                                <th style="width: 25%">Última actualización</th>
+                                <th style="width: 15%">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in documents_data %}
+                            <tr id="doc-row-{{ item.type.id }}">
+                                <td>
+                                    <strong>{{ item.type.name }}</strong>
+                                    {% if item.type.description %}
+                                        <div class="text-muted small">{{ item.type.description }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.type.is_required %}
+                                        <span class="badge bg-danger">Requerido</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Opcional</span>
+                                    {% endif %}
+                                </td>
+                                <td id="status-col-{{ item.type.id }}">
+                                    {% if item.document %}
+                                        {% if item.document.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">En revisión</span>
+                                        {% elif item.document.status == 'approved' %}
+                                            <span class="badge bg-success">Aprobado</span>
+                                        {% elif item.document.status == 'rejected' %}
+                                            <span class="badge bg-danger">Rechazado</span>
+                                            {% if item.document.rejection_reason %}
+                                                <div class="text-danger small mt-1">
+                                                    <i class="bi bi-exclamation-circle"></i> {{ item.document.rejection_reason }}
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">No cargado</span>
+                                    {% endif %}
+                                </td>
+                                <td id="date-col-{{ item.type.id }}">
+                                    {% if item.document %}
+                                        {% if item.document.reviewed_at %}
+                                            <span class="text-muted">Revisado: {{ item.document.reviewed_at|date:"d/m/Y H:i" }}</span>
+                                        {% else %}
+                                            <span class="text-muted">Cargado: {{ item.document.uploaded_at|date:"d/m/Y H:i" }}</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-sm btn-primary" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#uploadModal-{{ item.type.id }}">
+                                            {% if item.document %}
+                                                <i class="bi bi-arrow-repeat"></i> Actualizar
+                                            {% else %}
+                                                <i class="bi bi-upload"></i> Cargar
+                                            {% endif %}
+                                        </button>
+                                        
+                                        {% if item.document %}
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                       type="button" 
+                                                       data-bs-toggle="dropdown" 
+                                                       aria-expanded="false">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{% url 'view_document' item.document.id %}" target="_blank">
+                                                            <i class="bi bi-eye"></i> Ver documento
+                                                        </a>
+                                                    </li>
+                                                    {% comment %} {% if item.document.status != 'approved' %}
+                                                        <li>
+                                                            <button class="dropdown-item approve-document-btn" 
+                                                                   data-document-id="{{ item.document.id }}"
+                                                                   data-document-name="{{ item.type.name }}">
+                                                                <i class="bi bi-check-circle"></i> Aprobar
+                                                            </button>
+                                                        </li>
+                                                    {% endif %}
+                                                    {% if item.document.status != 'rejected' %}
+                                                        <li>
+                                                            <button class="dropdown-item reject-document-btn" 
+                                                                   data-document-id="{{ item.document.id }}"
+                                                                   data-document-name="{{ item.type.name }}"
+                                                                   data-bs-toggle="modal" 
+                                                                   data-bs-target="#rejectModal">
+                                                                <i class="bi bi-x-circle"></i> Rechazar
+                                                            </button>
+                                                        </li>
+                                                    {% endif %} {% endcomment %}
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <button class="dropdown-item text-danger delete-document-btn" 
+                                                               data-document-id="{{ item.document.id }}"
+                                                               data-document-name="{{ item.type.name }}"
+                                                               data-bs-toggle="modal" 
+                                                               data-bs-target="#deleteModal">
+                                                            <i class="bi bi-trash"></i> Eliminar
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+    
+                            <!-- Modal para cargar documento -->
+                            <div class="modal fade" id="uploadModal-{{ item.type.id }}" tabindex="-1" aria-labelledby="uploadModalLabel-{{ item.type.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="{% url 'upload_document' supplier.id item.type.id %}" method="post" enctype="multipart/form-data" class="upload-document-form">
+                                            {% csrf_token %}
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="uploadModalLabel-{{ item.type.id }}">
+                                                    {% if item.document %}
+                                                        Actualizar {{ item.type.name }}
+                                                    {% else %}
+                                                        Cargar {{ item.type.name }}
+                                                    {% endif %}
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="id_file" class="form-label">Archivo</label>
+                                                    {{ item.form.file }}
+                                                    {% if item.form.file.help_text %}
+                                                        <div class="form-text" id="fileHelp">{{ item.form.file.help_text }}</div>
+                                                    {% endif %}
+                                                    <div class="invalid-feedback"></div>
+                                                </div>
+                                                {% if item.document %}
+                                                    <div class="alert alert-info">
+                                                        <i class="bi bi-info-circle"></i> Ya existe un documento cargado. Si sube un nuevo archivo, reemplazará al anterior.
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                                    Guardar
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para confirmar rechazo -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="rejectForm" action="" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="rejected">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="rejectModalLabel">Rechazar documento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Está a punto de rechazar el documento <strong id="rejectDocumentName"></strong>.</p>
+                        <div class="mb-3">
+                            <label for="rejection_reason" class="form-label">Motivo del rechazo</label>
+                            <textarea name="rejection_reason" id="rejection_reason" class="form-control" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Rechazar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para confirmar eliminación -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="deleteForm" action="" method="post">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Eliminar documento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Está seguro de que desea eliminar el documento <strong id="deleteDocumentName"></strong>?</p>
+                        <p class="text-danger">Esta acción no se puede deshacer.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Manejar la carga de documentos vía AJAX
+            const uploadForms = document.querySelectorAll('.upload-document-form');
+            uploadForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    // Corrección aquí: buscar el spinner dentro del botón directamente
+                    // const spinner = submitBtn.querySelector('.spinner-border');
+                    // Alternativa segura si no se encuentra
+                    const spinner = submitBtn ? submitBtn.querySelector('.spinner-border') : null;
+                    
+                    const formData = new FormData(this);
+                    const modalElement = this.closest('.modal');
+                    const typeId = modalElement.id.split('-')[1];
+                    
+                    // Mostrar spinner solo si existe
+                    if (spinner) {
+                        spinner.classList.remove('d-none');
+                    }
+                    
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                    }
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                    .then(({ status, body }) => {
+                        // Ocultar spinner
+                        if (spinner) {
+                            spinner.classList.add('d-none');
+                        }
+                        
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                        }
+                        
+                        if (status === 200) {
+                            // Cerrar el modal
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+                            modal.hide();
+                            
+                            // Actualizar la información en la tabla
+                            updateDocumentRow(typeId, body);
+                            
+                            // Mostrar mensaje de éxito
+                            showAlert('success', body.message);
+                        } else {
+                            // Mostrar errores
+                            if (body.errors && body.errors.file) {
+                                const fileInput = this.querySelector('#id_file');
+                                if (fileInput) {
+                                    const feedbackDiv = fileInput.nextElementSibling ? 
+                                        fileInput.nextElementSibling.nextElementSibling : null;
+                                    
+                                    fileInput.classList.add('is-invalid');
+                                    if (feedbackDiv) {
+                                        feedbackDiv.textContent = body.errors.file.join(' ');
+                                    }
+                                }
+                            }
+                            showAlert('danger', body.message || 'Error al procesar la solicitud.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (spinner) {
+                            spinner.classList.add('d-none');
+                        }
+                        
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                        }
+                        showAlert('danger', 'Error de conexión. Intente nuevamente.');
+                    });
+                });
+            });
+            
+            // Configurar modal de rechazo
+            const rejectButtons = document.querySelectorAll('.reject-document-btn');
+            rejectButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const documentId = this.dataset.documentId;
+                    const documentName = this.dataset.documentName;
+                    
+                    document.getElementById('rejectDocumentName').textContent = documentName;
+                    document.getElementById('rejectForm').action = `/document/${documentId}/update-status/`;
+                });
+            });
+            
+            // Manejar aprobación de documentos
+            const approveButtons = document.querySelectorAll('.approve-document-btn');
+            approveButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const documentId = this.dataset.documentId;
+                    const documentName = this.dataset.documentName;
+                    
+                    if (confirm(`¿Está seguro de que desea aprobar el documento "${documentName}"?`)) {
+                        const formData = new FormData();
+                        formData.append('status', 'approved');
+                        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+                        
+                        fetch(`/document/${documentId}/update-status/`, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            showAlert('success', data.message);
+                            // Actualizar la información en la fila
+                            const row = this.closest('tr');
+                            const typeId = row.id.replace('doc-row-', '');
+                            const statusCol = document.getElementById(`status-col-${typeId}`);
+                            const dateCol = document.getElementById(`date-col-${typeId}`);
+                            
+                            if (statusCol) {
+                                statusCol.innerHTML = '<span class="badge bg-success">Aprobado</span>';
+                            }
+                            
+                            if (dateCol) {
+                                dateCol.innerHTML = `<span class="text-muted">Revisado: ${data.reviewed_at}</span>`;
+                            }
+                            
+                            // Refrescar la página para actualizar correctamente los botones
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showAlert('danger', 'Error al procesar la solicitud.');
+                        });
+                    }
+                });
+            });
+            
+            // Configurar modal de eliminación
+            const deleteButtons = document.querySelectorAll('.delete-document-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const documentId = this.dataset.documentId;
+                    const documentName = this.dataset.documentName;
+                    
+                    document.getElementById('deleteDocumentName').textContent = documentName;
+                    document.getElementById('deleteForm').action = `/accounts/supplier/document/${documentId}/delete/`;
+                });
+            });
+            
+            // Función para actualizar la fila de un documento
+            function updateDocumentRow(typeId, data) {
+                const statusCol = document.getElementById(`status-col-${typeId}`);
+                const dateCol = document.getElementById(`date-col-${typeId}`);
+                
+                if (statusCol) {
+                    // Actualizar columna de estado
+                    let statusHtml = '';
+                    if (data.document_status === 'pending') {
+                        statusHtml = '<span class="badge bg-warning text-dark">Pendiente</span>';
+                    } else if (data.document_status === 'approved') {
+                        statusHtml = '<span class="badge bg-success">Aprobado</span>';
+                    } else if (data.document_status === 'rejected') {
+                        statusHtml = '<span class="badge bg-danger">Rechazado</span>';
+                    }
+                    statusCol.innerHTML = statusHtml;
+                }
+                
+                if (dateCol) {
+                    // Actualizar columna de fecha
+                    dateCol.innerHTML = `<span class="text-muted">Cargado: ${data.uploaded_at}</span>`;
+                }
+                
+                // Refrescar la página para actualizar correctamente los botones
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+            
+            // Función para mostrar alertas
+            function showAlert(type, message) {
+                const alertContainer = document.createElement('div');
+                alertContainer.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-4`;
+                alertContainer.style.zIndex = '9999';
+                alertContainer.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                document.body.appendChild(alertContainer);
+                
+                // Auto-eliminar después de 5 segundos
+                setTimeout(() => {
+                    if (alertContainer.parentNode) {
+                        alertContainer.parentNode.removeChild(alertContainer);
+                    }
+                }, 5000);
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          document.querySelectorAll('.upload-document-form').forEach(form => {
+            form.addEventListener('submit', () => {
+              const btn     = form.querySelector('button[type="submit"]');
+              const spinner = btn.querySelector('.spinner-border');
+              btn.disabled   = true;               // evita dobles clicks
+              spinner.classList.remove('d-none');  // muestra el spinner
+                
+            });
+          });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const notificationToggle = document.getElementById('notificationToggle');
+            const notificationBadge = document.getElementById('notificationBadge');
+
+            notificationToggle.addEventListener('click', () => {
+                // Simula "marcar como leídas"
+                if (notificationBadge) {
+                    notificationBadge.style.display = 'none';
+                }
+
+                // Aquí puedes hacer una llamada AJAX si quieres marcar en el backend
+                // fetch('/notifications/mark_all_read/', { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } });
+            });
+        });
+    </script>
+
+  </body>
+</html>

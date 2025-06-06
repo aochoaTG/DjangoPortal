@@ -1,0 +1,233 @@
+{% extends 'layouts/base_admin.html' %}{% block page_title %} Partidas {% endblock %}{% block title %}Partidas{% endblock %}
+{% load static %}
+{% block content %}
+<style>
+.select2-container {
+    width: 100% !important;
+}
+</style>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#requisition_lines_table', 10)">10</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#requisition_lines_table', 25)">25</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#requisition_lines_table', 50)">50</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#requisition_lines_table', 100)">100</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#requisition_lines_table')"><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                    <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#requisition_lines_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                    <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#requisition_lines_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+                </div>
+                </span>
+                <div class="d-flex align-items-center">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+                        <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#requisition_lines_table">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body border">
+                <div class="d-flex justify-content-between align-items-center">
+                    <form class="row row-cols-lg-auto g-3 align-items-center">
+                        <div class="col-12">
+                            <label class="visually-hidden" for="company">Empresa: </label>
+                            <select class="form-select" id="company" name="company">
+                                {% for key, value in companies.items %}
+                                    <option value="{{ key }}" {% if key == company %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="visually-hidden" for="from">Desde: </label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="from" name="from" value="{{ from }}">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="visually-hidden" for="until">Hasta: </label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="until" name="until" value="{{ until }}">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="mdi mdi-filter"></i> Filtrar
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Botón a la derecha -->
+                    <button class="btn btn-success text-light" id="request_quote_button">
+                        <i class="mdi mdi-cart"></i> Solicitar cotización
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body table-responsive border">
+                <table id="requisition_lines_table" class="table table-sm table-striped table-bordered" style="width:100%;">
+                    <thead>
+                    <tr>
+                        <th scope="col"><input type="checkbox" id="select-all"></th>
+                        <th scope="col">Compañia</th>
+                        <th scope="col">Id</th>
+                        <th scope="col">Requisición</th>
+                        <th scope="col">Fecha Requisición</th>
+                        <th scope="col">Solicita</th>
+                        <th scope="col">Concepto</th>
+                        <th scope="col">Notas</th>
+                        <th scope="col">UDM</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Costo</th>
+                        <th scope="col">Costo Total</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Centro Costos</th>
+                        <th scope="col">Dirigido</th>
+                        <th scope="col">Proveedor 1</th>
+                        <th scope="col">Proveedor 2</th>
+                        <th scope="col">Proveedor 3</th>
+                        <th scope="col"></th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                    <tr>
+                        <th></th> <!-- Columna vacía para el checkbox en el footer -->
+                        <th>Compañia</th>
+                        <th>Id</th>
+                        <th>Requisición</th>
+                        <th>Fecha Requisición</th>
+                        <th>Solicita</th>
+                        <th>Concepto</th>
+                        <th>Notas</th>
+                        <th>UDM</th>
+                        <th>Cantidad</th>
+                        <th>Costo</th>
+                        <th>Costo Total</th>
+                        <th>Estado</th>
+                        <th>Centro Costos</th>
+                        <th>Dirigido</th>
+                        <th>Proveedor 1</th>
+                        <th>Proveedor 2</th>
+                        <th>Proveedor 3</th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="requestQuoteModal" tabindex="-1" aria-labelledby="requestQuoteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-body" id="requestQuoteModalContent">
+          <div class="card m-0">
+              <div class="card-header mb-1"><b>Seleccionar proveedor</b></div>
+              <div class="card-body m-0 pb-0">
+                <form method="POST" action="{% url 'request_quote' %}" id="request_quote_form">
+                    {% csrf_token %}
+                    <div class="form-group row">
+                        <label for="supplier-select" class="col-sm-3 text-end control-label col-form-label">Proveedor: </label>
+                        <div class="col-sm-9">
+                            <select id="supplier-select" multiple="multiple" class="form-select w-100" name="suppliers[]">
+                            {% for item in suppliers %}
+                                <option value="{{ item.id }}">{{ item.rfc | upper }}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer pb-0">
+                        <input type="hidden" name="company" value="{{ company }}" />
+                        <input type="hidden" name="lines[]" id="lines" value="" />
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="request_quote_cancel">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="request_quote_submit">Guardar</button>
+                    </div>
+                </form>
+              </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/administrator.js' %}"></script>
+<script>
+  $(document).ready(function() {
+    $('#supplier-select').select2({
+        placeholder: "Selecciona una o más opciones",
+        allowClear: true,
+        closeOnSelect: false
+    });
+
+    // Limitar a 3 selecciones
+    $('#supplier-select').on('select2:select', function (e) {
+        let selected = $(this).val();
+        if (selected.length > 3) {
+            $(this).find(`option[value="${e.params.data.id}"]`).prop("selected", false);
+            $(this).trigger("change");
+
+            Swal.fire({
+                title: '¡Atención!',
+                text: 'Solo puedes seleccionar hasta 3 proveedores.',
+                icon: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK',
+            });
+        }
+    });
+  });
+</script>
+
+<script>
+
+$(document).ready(function () {
+    // Evento al hacer clic en el botón "Solicitar Cotización"
+    $('#request_quote_button').on('click', function () {
+        let selectedIds = [];
+
+        // Buscar checkboxes marcados y guardar sus IDs
+         $('#requisition_lines_table').DataTable().$('input.select-checkbox:checked').each(function () {
+            selectedIds.push($(this).data('id'));
+         });
+
+        // Verificar si hay al menos un checkbox seleccionado
+        if (selectedIds.length === 0) {
+            Swal.fire({
+                title: '¡Atención!',
+                text: 'Por favor, selecciona al menos una partida para cotizar.',
+                icon: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK',
+            });
+            return;
+        }
+
+        // Mostrar el modal si hay elementos seleccionados
+        $('#requestQuoteModal').modal('show');
+    });
+
+    const requestQuoteModal = document.getElementById('requestQuoteModal')
+    requestQuoteModal.addEventListener('show.bs.modal', event => {
+        // Recuperar el valor del atributo data-id de los elementos  input type=checkbox en una variable
+        let lines = [];
+        $('#requisition_lines_table').DataTable().$('input.select-checkbox:checked').each(function () {
+            lines.push($(this).data('id'));
+        });
+        // Asignar el valor de la variable al input type=hidden
+        $('#lines').val(lines);
+    })
+
+});
+</script>
+{% endblock %}

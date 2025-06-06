@@ -1,0 +1,27 @@
+<div class="card m-0">
+  <div class="card-header mb-1">Actualizar datos de proveedor</div>
+  <div class="card-body m-0 pb-0">
+    <form method="POST" action="{% url 'update_supplier_account' user_id=user_id %}">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group row">
+            <label for="{{ field.id_for_label }}" class="col-sm-3 text-end control-label col-form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+            <div class="col-sm-9">
+                {{ field }}
+            </div>
+            {% if field.help_text %}
+                <small class="col-3"></small>
+                <small class="form-text text-muted col-9">{{ field.help_text }}</small>
+            {% endif %}
+            {% for error in field.errors %}
+                <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        <div class="modal-footer pb-0">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+    </form>
+  </div>
+</div>

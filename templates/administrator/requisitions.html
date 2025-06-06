@@ -1,0 +1,176 @@
+{% extends 'layouts/base_admin.html' %}{% block page_title %} Requisiciones {% endblock %}{% block title %}Requisiciones{% endblock %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#requisitions_table', 10)">10</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#requisitions_table', 25)">25</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#requisitions_table', 50)">50</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#requisitions_table', 100)">100</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#requisitions_table')"><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                    <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#requisitions_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                    <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#requisitions_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+                </div>
+                </span>
+                <div class="d-flex align-items-center">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+                        <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#requisitions_table">
+                    </div>
+                </div>
+            </div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <!-- Aqui agregamos un formuario de fechas y empresa -->
+                <form id="filterForm" class="form-inline w-100">
+                    <div class="row">
+                        <div class="col">
+                            <label for="start_date" class="mr-2">Fecha Inicial</label>
+                            <input type="date" class="form-control form-control-sm" id="start_date" name="start_date">
+                        </div>
+                        <div class="col">
+                            <label for="end_date" class="mr-2">Fecha Final</label>
+                            <input type="date" class="form-control form-control-sm" id="end_date" name="end_date">
+                        </div>
+                        <div class="col">
+                            <label for="company" class="mr-2">Empresa</label>
+                            <select class="form-control form-control-sm" id="company" name="company">
+                                <option value="">Todas</option>
+                                {% for company in companies %}
+                                    <option value="{{ company }}">{{ company }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col">
+                            <button type="button" class="btn btn-primary btn-sm mt-4" onclick="filterTable('#requisitions_table', '#filterForm')"><i class="mdi mdi-filter"></i> Filtrar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body table-responsive">
+                <table id="requisitions_table" class="table table-sm table-striped table-bordered" style="width:100%;">
+                    <thead>
+                    <tr>
+                        <th>Empresa</th>
+                        <th>Folio</th>
+                        <th>Lineas</th>
+                        <th>Total Costo</th>
+                        <th>Fecha Requisicion</th>
+                        <th>Usuario Solicita</th>
+                        <th>Empleado Solicita</th>
+                        <th>Dirigido A</th>
+                        <th>Referencia</th>
+                        <th>Estado</th>
+                        <th>Empleado Libero</th>
+                        <th>Fecha liberacion</th>
+                        <th>Cotizó</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                    <tr>
+                        <td>Empresa</td>
+                        <td>Folio</td>
+                        <td>Lineas</td>
+                        <td>Total Costo</td>
+                        <td>Fecha Requisicion</td>
+                        <td>Usuario Solicita</td>
+                        <td>Empleado Solicita</td>
+                        <td>Dirigido A</td>
+                        <td>Referencia</td>
+                        <td>Estado</td>
+                        <td>Empleado Libero</td>
+                        <td>Fecha liberacion</td>
+                        <td>Cotizó</td>
+                        <td></td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="reqDetailsModal" tabindex="-1" aria-labelledby="reqDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-body" id="reqDetailsModalContent"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/administrator.js' %}"></script>
+<script>
+function filterTable(tableId, formId) {
+    // Obtener los valores del formulario
+    const startDate = document.querySelector(`${formId} #start_date`).value;
+    const endDate = document.querySelector(`${formId} #end_date`).value;
+    const companyId = document.querySelector(`${formId} #company`).value;
+
+    // Obtener la tabla
+    const table = $(tableId).DataTable();
+
+    // Construir el objeto de filtros
+    let filters = {};
+
+    // Agregar filtros solo si tienen valor
+    if (startDate) {
+        filters.startDate = new Date(startDate);
+    }
+    if (endDate) {
+        filters.endDate = new Date(endDate);
+    }
+    if (companyId) {
+        filters.companyId = companyId;
+    }
+
+    // Aplicar filtro personalizado a DataTables
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        // Si no hay filtros, mostrar todas las filas
+        if (Object.keys(filters).length === 0) return true;
+
+        let showRow = true;
+
+        // Filtrar por empresa
+        if (filters.companyId) {
+            // Asumiendo que el ID de la empresa está en data[0]
+            const rowCompanyId = data[0].split(' - ')[0]; // Extraer el ID si el formato es "ID - Nombre"
+            showRow = showRow && (rowCompanyId === filters.companyId);
+        }
+
+        // Filtrar por fecha
+        if (filters.startDate || filters.endDate) {
+            // Asumiendo que la fecha está en data[4] en formato YYYY-MM-DD
+            const rowDate = new Date(data[4]);
+
+            if (filters.startDate) {
+                showRow = showRow && (rowDate >= filters.startDate);
+            }
+            if (filters.endDate) {
+                showRow = showRow && (rowDate <= filters.endDate);
+            }
+        }
+
+        return showRow;
+    });
+
+    // Redibujar la tabla con los filtros aplicados
+    table.draw();
+
+    // Limpiar los filtros personalizados para futuras búsquedas
+    $.fn.dataTable.ext.search.pop();
+}
+
+</script>
+{% endblock %}

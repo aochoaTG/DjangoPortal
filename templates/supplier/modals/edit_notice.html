@@ -1,0 +1,32 @@
+<form id="editNoticeForm" method="POST" enctype="multipart/form-data" action="{% url 'edit_notice' notice.id %}">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label for="{{ form.title.id_for_label }}">Título</label>
+        {{ form.title }}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.text.id_for_label }}">Texto</label>
+        {{ form.text }}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.image.id_for_label }}">Imagen</label>
+        {{ form.image }}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.published_at.id_for_label }}">Fecha de publicación</label>
+        <input type="date" name="published_at" class="form-control"
+               value="{{ form.published_at.value|default:form.published_at.initial|date:'Y-m-d' }}">
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.visible_until.id_for_label }}">Visible hasta</label>
+        <input type="date" name="visible_until" class="form-control"
+               value="{{ form.visible_until.value|default:form.visible_until.initial|date:'Y-m-d' }}">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+</form>

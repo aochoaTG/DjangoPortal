@@ -1,0 +1,77 @@
+{% load static %}
+<aside class="left-sidebar" style="background: #000 !important;">
+  <div class="scroll-sidebar" style="background: #000 !important; position: relative; min-height: 100vh;">
+    <nav class="sidebar-nav">
+      <ul id="sidebarnav" class="pt-4">
+        <li class="sidebar-item">
+          <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'supplier_dashboard' %}" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="35" height="26" viewBox="0 0 24 24">
+              <path d="M3,3V19H21V21H3A2,2 0 0,1 1,19V3H3" fill="#2B57A4"/>
+              <path d="M21,15L17,9L12,14L8.5,9.5L3,16V18H21V15Z" fill="#1197D5"/>
+            </svg>
+            <span class="hide-menu">Dashboard</span></a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'supplier_rfq' %}" aria-expanded="false"><i class="mdi mdi-lightbulb-on-outline text-success"></i><span class="hide-menu">Solicitudes de Cotización</span></a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'quotes' %}" aria-expanded="false"><i class="mdi mdi-clipboard-check text-primary"></i><span class="hide-menu">Cotizaciones</span></a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="mdi mdi-checkbox-marked text-info"></i> <span class="hide-menu">Órdenes de Compra </span></a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="index2.html" class="sidebar-link"><i class="mdi mdi-view-dashboard"></i><span class="hide-menu"> Dashboard-2 </span></a>
+            </li>
+            <li class="sidebar-item">
+              <a href="pages-gallery.html" class="sidebar-link"><i class="mdi mdi-multiplication-box"></i><span class="hide-menu"> Gallery </span></a>
+            </li>
+            <li class="sidebar-item">
+              <a href="pages-calendar.html" class="sidebar-link"><i class="mdi mdi-calendar-check"></i><span class="hide-menu"> Calendar </span></a>
+            </li>
+            <li class="sidebar-item">
+              <a href="pages-invoice.html" class="sidebar-link"><i class="mdi mdi-bulletin-board"></i><span class="hide-menu"> Invoice </span></a>
+            </li>
+            <li class="sidebar-item">
+              <a href="pages-chat.html" class="sidebar-link"><i class="mdi mdi-message-outline"></i><span class="hide-menu"> Chat Option </span></a>
+            </li>
+          </ul>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="mdi mdi-square-inc-cash text-success"></i><span class="hide-menu">Facturación y Pagos </span></a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="authentication-login.html" class="sidebar-link"><i class="mdi mdi-all-inclusive"></i><span class="hide-menu"> Login </span></a>
+            </li>
+            <li class="sidebar-item">
+              <a href="authentication-register.html" class="sidebar-link"><i class="mdi mdi-all-inclusive"></i><span class="hide-menu"> Register </span></a>
+            </li>
+          </ul>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'notices_supplier' %}" aria-expanded="false"><i class="mdi mdi-comment-alert text-danger"></i><span class="hide-menu">Comunicados </span></a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="mdi mdi-alert text-warning"></i><span class="hide-menu">Soporte y Ayuda </span></a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item">
+              <a href="error-403.html" class="sidebar-link"><i class="mdi mdi-alert-octagon"></i><span class="hide-menu"> Error 403 </span></a>
+            </li>
+            <li class="sidebar-item">
+              <a href="error-404.html" class="sidebar-link"><i class="mdi mdi-alert-octagon"></i><span class="hide-menu"> Error 404 </span></a>
+            </li>
+            <li class="sidebar-item">
+              <a href="error-405.html" class="sidebar-link"><i class="mdi mdi-alert-octagon"></i><span class="hide-menu"> Error 405 </span></a>
+            </li>
+            <li class="sidebar-item">
+              <a href="error-500.html" class="sidebar-link"><i class="mdi mdi-alert-octagon"></i><span class="hide-menu"> Error 500 </span></a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+    <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 80%;">
+      <img src="{% static 'img/logoGarantia.png' %}" alt="Logo Garantía" style="width: 100%; max-width: 150px;">
+    </div>
+  </div>
+</aside>

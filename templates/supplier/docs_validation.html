@@ -1,0 +1,214 @@
+{% extends 'layouts/base_admin.html' %}
+{% load static %}
+{% block page_title %} Documentos {% endblock %}
+{% block title %}Documentos{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-body">
+    <p class="p-0 m-0">Esta es la seccion de documentos de los proveedores. Podrá validar los documentos que los proveedores han subido a la plataforma. Puedes ver el estado de cada documento y si es necesario, puedes solicitar cambios o más información al proveedor.</p>
+    <p class="p-0 m-0">Los documentos que se encuentran en estado "Pendiente" son aquellos que el proveedor ha subido pero que aún no han sido aprobados o rechazados por el administrador. Puedes hacer clic en el nombre del documento para verlo.</p>
+  </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 10)">10</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 25)">25</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 50)">50</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 100)">100</a></li>
+                                </ul>
+                            </div>
+                            <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#notices_table')" ><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                            <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#notices_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                            <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#notices_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+                            <button type="button" class="ms-1 btn btn-secondary" data-bs-toggle="modal" data-bs-target="#noticeModal"><i class="mdi mdi-plus" data-bs-toggle="tooltip" title="Agregar"></i> Agregar</button>
+                        </div>
+                    </span>
+                <div class="d-flex align-items-center">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+                        <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#notices_table">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-striped table-bordered" id="table-docs-validation" style="width:100%">
+                    <caption>Listado de proveedores</caption>
+                    <thead>
+                        <tr>
+                        <th scope="col" style="white-space: nowrap;">#</th>
+                        <th scope="col" style="white-space: nowrap;">Razón social</th>
+                        <th scope="col" style="white-space: nowrap;">CSF</th>
+                        <th scope="col" style="white-space: nowrap;">Comp. Dom.</th>
+                        <th scope="col" style="white-space: nowrap;">Carat. Ban.</th>
+                        <th scope="col" style="white-space: nowrap;">Opinión SAT</th>
+                        <th scope="col" style="white-space: nowrap;">Acta Const.</th>
+                        <th scope="col" style="white-space: nowrap;">Poder Legal</th>
+                        <th scope="col" style="white-space: nowrap;">Id Oficial</th>
+                        <th scope="col" style="white-space: nowrap;">Opinión IMSS</th>
+                        <th scope="col" style="white-space: nowrap;">Opinión Infonavit</th>
+                        <th scope="col" style="white-space: nowrap;">Solicitud alta</th>
+                        <th scope="col" style="white-space: nowrap;">REPSE</th>
+                        <th scope="col" style="white-space: nowrap;">Confidencialidad</th>
+                        <th scope="col" style="white-space: nowrap;">Inducción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/administrator.js' %}"></script>
+<script>
+    $(document).ready(function() {
+
+        let table_docs_validation = $('#table-docs-validation').DataTable({
+            colReorder: true,
+            pageLength: 25,
+            dom: 'tip', // Muestra la tabla (t), la información (i), y la paginación (p)
+            paging: true, // Si quieres mantener la paginación
+            info: true, // Si quieres mostrar la información de "Mostrando X a Y de Z entradas"
+            buttons: ['copy', 'excel'], // Si quieres mostrar los botones de copiar, excel y pdf
+            orderCellsTop: true, // Hace que solo la primera fila del thead controle el ordenamiento
+            fixedHeader: true,   // Mantiene los filtros visibles cuando haces scroll
+            ajax: {
+                "url": "/suppliers/docs_validation_table/",
+                "dataSrc": ""
+            },
+            columns: [
+                { "data": "id" },
+                { "data": "razon_social" },
+                { "data": "csf", "render": renderDocCell },
+                { "data": "comprobante_domicilio", "render": renderDocCell },
+                { "data": "caracter_bancario", "render": renderDocCell },
+                { "data": "opinion_sat", "render": renderDocCell },
+                { "data": "acta_constitutiva", "render": renderDocCell },
+                { "data": "poder_legal", "render": renderDocCell },
+                { "data": "identificacion_oficial", "render": renderDocCell },
+                { "data": "opinion_imss", "render": renderDocCell },
+                { "data": "opinion_infonavit", "render": renderDocCell },
+                { "data": "solicitud_alta", "render": renderDocCell },
+                { "data": "repse", "render": renderDocCell },
+                { "data": "confidencialidad", "render": renderDocCell },
+                { "data": "induccion", "render": renderDocCell }
+            ],
+            // Vamos a agregar el campo id como id de la fila
+            createdRow: function (row, data, dataIndex) {
+                $(row).attr('id', 'row_' + data.id);
+                $(row).attr('data-id', data.id);
+            },
+            initComplete: function () {
+                addDataTableFilter('table-docs-validation');
+            }
+        });
+
+    });
+
+    function renderTextStatus(status) {
+        if (!status || status.trim() === "") {
+            return '<span class="text-muted">No enviado</span>';
+        }
+
+        switch (status) {
+            case "Pendiente":
+                return '<span class="text-warning fw-bold">Pendiente</span>';
+            case "Aprobado":
+                return '<span class="text-success fw-bold">Aprobado</span>';
+            case "Rechazado":
+                return '<span class="text-danger fw-bold">Rechazado</span>';
+            default:
+                return status;
+        }
+    }
+
+    function renderDocCell(data, type, row, meta) {
+        const docCode = meta.settings.aoColumns[meta.col].data;
+        if (!data || data.status === 'No enviado') {
+            return '<span class="text-muted">No enviado</span>';
+        }
+
+        let colorClass = '';
+        if (data.status === 'Por aprobar') colorClass = 'text-primary text-center';
+        else if (data.status === 'Aprobado') colorClass = 'text-success text-center';
+        else if (data.status === 'Rechazado') colorClass = 'text-danger text-center';
+
+        let html = `<a href="${data.url}" target="_blank" class="${colorClass} fw-bold d-block">${data.status}</a>`;
+
+        if (data.status === 'Pendiente') {
+            html += `
+                <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+                    <button type="button" class="btn btn-success btn-sm text-light" onclick="approveDoc(${row.id}, '${data.code}')">Aceptar</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="rejectDoc(${row.id}, '${data.code}')">Rechazar</button>
+                </div>
+            `;
+        }
+
+        return html;
+    }
+
+    function approveDoc(supplierId, docCode) {
+        fetch(`/suppliers/${supplierId}/document/${docCode}/approve/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        }).then(response => response.json())
+        .then(data => location.reload());
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.substring(0, name.length + 1) === name + '=') {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function rejectDoc(supplierId, docCode) {
+        const reason = prompt("Ingresa el motivo del rechazo:");
+        if (!reason) {
+            alert("Debes ingresar un motivo para rechazar el documento.");
+            return;
+        }
+
+        fetch(`/suppliers/${supplierId}/document/${docCode}/reject/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({ reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                location.reload();  // O usa datatable.ajax.reload() si quieres eficiencia
+            } else {
+                alert(data.error || 'Ocurrió un error al rechazar el documento.');
+            }
+        });
+    }
+</script>
+{% endblock %}

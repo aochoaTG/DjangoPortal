@@ -1,0 +1,135 @@
+{% extends 'layouts/base_admin.html' %}
+{% load static %}
+{% block page_title %} Catálogo de proveedores {% endblock %}
+{% block title %}Catálogo de proveedores{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="setTableLength('#catSuppliersUsersTable', 10)">10</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="setTableLength('#catSuppliersUsersTable', 25)">25</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="setTableLength('#catSuppliersUsersTable', 50)">50</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="setTableLength('#catSuppliersUsersTable', 100)">100</a></li>
+                    </ul>
+                </div>
+                <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#catSuppliersUsersTable')" ><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#catSuppliersUsersTable')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#catSuppliersUsersTable')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+            </div>
+        </span>
+        <div class="d-flex align-items-center">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+            <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#catSuppliersUsersTable">
+        </div>
+        </div>
+        </div>
+        <div class="card-body border">
+            <!-- Aqui vamos a agregar dos botones, uno para exportar la tabla en formato de excel, y otro para importar el excel -->
+            <div class="">
+
+                <!-- Formulario para importar Excel -->
+                <form action="{% url 'import_suppliers_from_excel' %}" method="post" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+                    {% csrf_token %}
+                    <input class="form-control" type="file" id="excel_file" name="excel_file" style="flex: 1;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="mdi mdi-file-excel"></i> Importar Excel
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='{% url 'export_suppliers_to_excel' %}'">
+                        <i class="mdi mdi-plus"></i> Exportar a Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body table-responsive">
+            <table id="catSuppliersUsersTable" class="table table-sm table-striped table-bordered" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>RFC</th>
+                        <th>Código postal</th>
+                        <th>Ciudad</th>
+                        <th>Estado</th>
+                        <th>Correo</th>
+                        <th>Banco</th>
+                        <th>No de cuenta</th>
+                        <th>CLABE</th>
+                        <th>Método de pago</th>
+                        <th>Moneda</th>
+                        <th>Sitio web</th>
+                        <th>Categoria</th>
+                        <th>Estado</th>
+                        <th>Notas</th>
+                        <th>Arch. elec.</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>RFC</th>
+                        <th>Código postal</th>
+                        <th>Ciudad</th>
+                        <th>Estado</th>
+                        <th>Correo</th>
+                        <th>Banco</th>
+                        <th>No de cuenta</th>
+                        <th>CLABE</th>
+                        <th>Método de pago</th>
+                        <th>Moneda</th>
+                        <th>Sitio web</th>
+                        <th>Categoria</th>
+                        <th>Estado</th>
+                        <th>Notas</th>
+                        <th>Arch. elec.</th>
+                        <th>Acción</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="update_cat_supplier_modal" tabindex="-1" aria-labelledby="update_cat_supplier_modalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-body" id="update_cat_supplier_modalContent">
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/accounts.js' %}"></script>
+<script>
+    $('#update_cat_supplier_modal').on('show.bs.modal', function (event) {
+        let button = $(event.relatedTarget); // Botón que abre el modal
+        // Extraer los atributos data-* del botón/enlace
+        let id = button.data('id');
+
+        // Vamos a mandar a pedir los datos del formulario por medio de AJAX
+        $.ajax({
+            url: "/accounts/update_cat_supplier_modal/" + id + '/',
+            method: 'GET',
+            success: function(data) {
+                console.log(data);
+                // Buscamos el elemento con el id #update_cat_supplier_modalContent
+                $('#update_cat_supplier_modalContent').html(data.html);
+            }
+        });
+    });
+</script>
+{% endblock %}
+

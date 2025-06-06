@@ -1,0 +1,58 @@
+{% load static %}
+<aside class="left-sidebar" style="background: #000 !important;">
+  <div class="scroll-sidebar" style="background: #000 !important; position: relative;">
+    <nav class="sidebar-nav">
+      <ul id="sidebarnav" class="pt-4">
+        <li class="sidebar-item">
+          <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'administrator_dashboard' %}" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="35" height="26" viewBox="0 0 24 24">
+              <path d="M3,3V19H21V21H3A2,2 0 0,1 1,19V3H3" fill="#2B57A4"/>
+              <path d="M21,15L17,9L12,14L8.5,9.5L3,16V18H21V15Z" fill="#1197D5"/>
+            </svg>
+            <span class="hide-menu">Dashboard</span></a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="mdi mdi-account-multiple text-success"></i><span class="hide-menu">Usuarios </span></a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item"><a href="{% url 'show_staff_users' %}" class="sidebar-link"><i class="mdi mdi-account-star-variant"></i><span class="hide-menu"> Staff</span></a></li>
+            <li class="sidebar-item"><a href="{% url 'show_suppliers' %}" class="sidebar-link"><i class="mdi mdi-account-box"></i><span class="hide-menu"> Proveedores</span></a></li>
+          </ul>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="mdi mdi-folder text-warning"></i><span class="hide-menu">Catálogos </span></a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item"><a href="{% url 'show_catsuppliers' %}" class="sidebar-link"><i class="mdi mdi-account-box"></i><span class="hide-menu"> Proveedores</span></a></li>
+            <li class="sidebar-item"><a href="{% url 'supplier_items:list' %}" class="sidebar-link"><i class="mdi mdi-puzzle"></i><span class="hide-menu"> Productos/Servicios</span></a></li>
+          </ul>
+        </li>
+
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="mdi mdi-clipboard-check text-primary"></i> <span class="hide-menu">Requisiciones y Compras </span></a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item"><a href="{% url 'requisitions' %}" class="sidebar-link"><i class="mdi mdi-file-send"></i><span class="hide-menu"> Requisiciones</span></a></li>
+            <li class="sidebar-item"><a href="{% url 'requisition_lines' %}" class="sidebar-link"><i class="mdi mdi-layers"></i><span class="hide-menu"> Partidas</span></a></li>
+            <li class="sidebar-item"><a href="{% url 'quote_requests' %}" class="sidebar-link"><i class="mdi mdi-arrow-up-bold-hexagon-outline"></i><span class="hide-menu"> Solicitudes de cotización</span></a></li>
+            <li class="sidebar-item"><a href="{% url 'purchase_orders' %}" class="sidebar-link"><i class="mdi mdi-file-check"></i><span class="hide-menu"> Órdenes de compra</span></a></li>
+          </ul>
+        </li>
+
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="mdi mdi-square-inc-cash text-success"></i> <span class="hide-menu">Pagos y Facturación </span></a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item"><a href="{% url 'requisitions' %}" class="sidebar-link"><i class="mdi mdi-file-send"></i><span class="hide-menu"> Pendiente</span></a></li>
+          </ul>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="mdi mdi-wrench text-secondary"></i> <span class="hide-menu">Herramientas </span></a>
+          <ul aria-expanded="false" class="collapse first-level">
+            <li class="sidebar-item"><a href="{% url 'notices' %}" class="sidebar-link"><i class="mdi mdi-comment-alert-outline"></i><span class="hide-menu"> Comunicados</span></a></li>
+            <li class="sidebar-item"><a href="{% url 'docs_validation' %}" class="sidebar-link"><i class="mdi mdi-comment-alert-outline"></i><span class="hide-menu"> Validación de documentos</span></a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+<!--    <div style="position: absolute; bottom: 0px; left: 60%; transform: translateX(-50%); width: 80%;">-->
+<!--      <img src="{% static 'img/logoGarantia.png' %}" alt="Logo Garantía" style="width: 100%; max-width: 150px;">-->
+<!--    </div>-->
+  </div>
+</aside>

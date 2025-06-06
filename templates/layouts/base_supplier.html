@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Supplier - {% block page_title %}{% endblock %}</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'admintemplate/assets/images/logo-icon.png' %}"/>
+    <link href="{% static 'admintemplate/assets/libs/flot/css/float-chart.css' %}" rel="stylesheet" />
+    <link href="{% static 'admintemplate/dist/css/style.min.css' %}" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="{% static 'admintemplate/assets/extra-libs/multicheck/multicheck.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Tipografia -->
+    <link href="https://fonts.google.com/specimen/Poppins?preview.text=Portal%20de%20Proveedores&categoryFilters=Sans+Serif:%2FSans%2F*" rel="stylesheet">
+    
+    <style>
+      td {
+        padding: 8px !important;
+      }
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+
+  <body style="font-family: 'Encode Sans Condensed', sans-serif; font-weight: 500; /* Medium */">
+    <!-- ============================================================== -->
+    <!-- Preloader - style you can find in spinners.css -->
+    <!-- ============================================================== -->
+    <div class="preloader">
+      <div class="lds-ripple">
+        <div class="lds-pos"></div>
+        <div class="lds-pos"></div>
+      </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- Main wrapper - style you can find in pages.scss -->
+    <!-- ============================================================== -->
+    <div id="main-wrapper" data-layout="vertical" data-sidebartype="full" data-sidebar-position="absolute" data-header-position="absolute" data-boxed-layout="full">
+      <!-- ============================================================== -->
+      <!-- Topbar header - style you can find in pages.scss -->
+      <!-- ============================================================== -->
+      {% include 'layouts/header.html' %}
+      <!-- ============================================================== -->
+      <!-- End Topbar header -->
+      <!-- ============================================================== -->
+      <!-- ============================================================== -->
+      <!-- Left Sidebar - style you can find in sidebar.scss  -->
+      <!-- ============================================================== -->
+      {% include 'layouts/sidebar_supplier.html' %}
+      <!-- ============================================================== -->
+      <!-- End Left Sidebar - style you can find in sidebar.scss  -->
+      <!-- ============================================================== -->
+      <!-- ============================================================== -->
+      <!-- Page wrapper  -->
+      <!-- ============================================================== -->
+      <div class="page-wrapper">
+        {% if messages %}
+          <div class="messages">
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }}">
+                {{ message | safe}}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="page-breadcrumb">
+          <div class="row">
+            <div class="col-12 d-flex no-block align-items-center">
+              <h4 class="page-title">{% block title %}{% endblock %}</h4>
+              <div class="ms-auto text-end">
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#"></a></li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="container-fluid">
+          {% block content %}{% endblock %}
+        </div>
+        {% include 'layouts/footer.html' %}
+      </div>
+
+
+    </div>
+    <script src="{% static 'admintemplate/assets/libs/jquery/dist/jquery.min.js' %}"></script>
+    <!-- Bootstrap tether Core JavaScript -->
+    <script src="{% static 'admintemplate/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'admintemplate/assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js' %}"></script>
+    <script src="{% static 'admintemplate/assets/extra-libs/sparkline/sparkline.js' %}"></script>
+    <!--Wave Effects -->
+    <script src="{% static 'admintemplate/dist/js/waves.js' %}"></script>
+    <!--Menu sidebar -->
+    <script src="{% static 'admintemplate/dist/js/sidebarmenu.js' %}"></script>
+    <!--Custom JavaScript -->
+    <script src="{% static 'admintemplate/dist/js/custom.min.js' %}"></script>
+    <!-- Charts js Files -->
+    <script src="{% static 'admintemplate/assets/libs/flot/excanvas.js' %}"></script>
+    <script src="{% static 'admintemplate/assets/libs/flot/jquery.flot.js' %}"></script>
+    <script src="{% static 'admintemplate/assets/libs/flot/jquery.flot.pie.js' %}"></script>
+    <script src="{% static 'admintemplate/assets/libs/flot/jquery.flot.time.js' %}"></script>
+    <script src="{% static 'admintemplate/assets/libs/flot/jquery.flot.stack.js' %}"></script>
+    <script src="{% static 'admintemplate/assets/libs/flot/jquery.flot.crosshair.js' %}"></script>
+    <script src="{% static 'admintemplate/assets/libs/flot.tooltip/js/jquery.flot.tooltip.min.js' %}"></script>
+    <script src="{% static 'admintemplate/dist/js/pages/chart/chart-page-init.js' %}"></script>
+
+    <!-- Datatable js Files -->
+    <script src="{% static 'admintemplate/assets/extra-libs/multicheck/datatable-checkbox-init.js' %}"></script>
+    <script src="{% static 'admintemplate/assets/extra-libs/multicheck/jquery.multicheck.js' %}"></script>
+    	<!-- Datatable -->
+	<script src="{% static 'admintemplate/datatable/datatables/jquery.dataTables.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/datatables-bs4/js/dataTables.bootstrap4.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/datatables-buttons/js/dataTables.buttons.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/datatables-buttons/js/buttons.bootstrap4.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/jszip/jszip.min.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/pdfmake/pdfmake.min.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/pdfmake/vfs_fonts.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/datatables-buttons/js/buttons.html5.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/datatables-buttons/js/buttons.print.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/datatables-buttons/js/buttons.colVis.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/datatables-colreorder/js/dataTables.colReorder.js' %}"></script>
+	<script src="{% static 'admintemplate/datatable/datatables-colreorder/js/colReorder.bootstrap4.js' %}"></script>
+	<script src="https://cdn.datatables.net/fixedcolumns/4.0.2/js/dataTables.fixedColumns.min.js"></script>
+	<script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/notifications.js' %}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

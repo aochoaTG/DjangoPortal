@@ -1,0 +1,100 @@
+{% extends 'layouts/base_supplier.html' %}
+{% load static %}
+{% block page_title %} Actualización de información {% endblock %}
+{% block title %}Actualización de información{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        {% for field in form %}
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {% if field.name == 'fiscal_situation' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.fiscal_situation %}{{ form.instance.fiscal_situation.url }}{% else %}{% static 'img/Constancia de Situación Fiscal.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'address_proof' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.address_proof %}{{ form.instance.address_proof.url }}{% else %}{% static 'img/Comprobante de domicilio.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'bank_statement' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.bank_statement %}{{ form.instance.bank_statement.url }}{% else %}{% static 'img/Carátula Bancaria.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'sat_positive_opinion' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.sat_positive_opinion %}{{ form.instance.sat_positive_opinion.url }}{% else %}{% static 'img/Opinión Positiva del SAT.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'incorporation_act' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.incorporation_act %}{{ form.instance.incorporation_act.url }}{% else %}{% static 'img/Acta Constitutiva.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'legal_power' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.legal_power %}{{ form.instance.legal_power.url }}{% else %}{% static 'img/Poder Legal.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'identification' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.identification %}{{ form.instance.identification.url }}{% else %}{% static 'img/Identificación.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'imss_opinion' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.imss_opinion %}{{ form.instance.imss_opinion.url }}{% else %}{% static 'img/Opinión del IMSS.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'infonavit_opinion' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.infonavit_opinion %}{{ form.instance.infonavit_opinion.url }}{% else %}{% static 'img/Opinión del INFONAVIT.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'supplier_registration_request' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.supplier_registration_request %}{{ form.instance.supplier_registration_request.url }}{% else %}{% static 'img/Solicitud Alta de Proveedor.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'repse' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.repse %}{{ form.instance.repse.url }}{% else %}{% static 'img/REPSE.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'confidentiality_agreement' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.confidentiality_agreement %}{{ form.instance.confidentiality_agreement.url }}{% else %}{% static 'img/Acta de Confidencialidad.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    {% if field.name == 'induction_course' %}
+                                        <div class="ratio ratio-16x9">
+                                          <iframe src="{% if form.instance.induction_course %}{{ form.instance.induction_course.url }}{% else %}{% static 'img/Curso de Inducción.pdf' %}{% endif %}" title="YouTube video" allowfullscreen></iframe>
+                                        </div>
+                                    {% endif %}
+                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

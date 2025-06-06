@@ -1,0 +1,72 @@
+<div class="card table-responsive">
+    <div class="card-body">
+        <h5 class="card-title mb-0">Partidas Req. #{{ lines.0.id_req_mat }} | Compañia: {{ lines.0.Company }}</h5>
+    </div>
+    <!-- El tamaño de letra sera x-small -->
+    <table class="table table-sm text-center" style="font-size: x-small">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Requisición</th>
+            <th scope="col">Solicita</th>
+            <th scope="col">Concepto</th>
+            <th scope="col">Notas</th>
+            <th scope="col">UDM</th>
+            <th scope="col">Cantidad</th>
+            <th scope="col">Costo</th>
+            <th scope="col">Costo Total</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Centro Costos</th>
+            <th scope="col">Dirigido</th>
+            <th scope="col">Proveedor 1</th>
+            <th scope="col">Proveedor 2</th>
+            <th scope="col">Proveedor 3</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for line in lines %}
+            <tr>
+                <td class="p-1 ">{{ line.id_req_mat_det }}</td>
+                <td class="p-1 ">{{ line.id_req_mat }}</td>
+                <td class="p-1 ">{{ line.EmpleadoSolicita }}</td>
+                <td class="p-1 ">{{ line.Concepto }}</td>
+                <td class="p-1 ">{{ line.Descripcion }}</td>
+                <td class="p-1 ">{{ line.udm }}</td>
+                <td class="p-1 ">{{ line.Cantidad }}</td>
+                <td class="p-1 ">{{ line.Costo }}</td>
+                <td class="p-1 ">{{ line.CostoTotal }}</td>
+                <td class="p-1 ">{{ line.Estado }}</td>
+                <td class="p-1 ">{{ line.CentroDeCostos }}</td>
+                <td class="p-1 ">{{ line.EmpleadoDirigido }}</td>
+                <td class="p-1 ">{{ line.prov1 }}</td>
+                <td class="p-1 ">{{ line.prov2 }}</td>
+                <td class="p-1 ">{{ line.prov3 }}</td>
+                <td class="p-1 "></td>
+            </tr>
+        {% empty %}
+            No hay elementos disponibles
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>#</th>
+                <th>Requisición</th>
+                <th>Solicita</th>
+                <th>Concepto</th>
+                <th>Notas</th>
+                <th>UDM</th>
+                <th>Cantidad</th>
+                <th>Costo</th>
+                <th>Costo Total</th>
+                <th>Estado</th>
+                <th>Centro Costos</th>
+                <th>Dirigido</th>
+                <th>Proveedor 1</th>
+                <th>Proveedor 2</th>
+                <th>Proveedor 3</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>

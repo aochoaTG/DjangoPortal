@@ -1,0 +1,122 @@
+{% extends 'layouts/base_admin.html' %}{% block page_title %} Órdenes de compra {% endblock %}{% block title %} Órdenes de compra{% endblock %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#purchase_orders_table', 10)">10</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#purchase_orders_table', 25)">25</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#purchase_orders_table', 50)">50</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#purchase_orders_table', 100)">100</a></li>
+                                </ul>
+                            </div>
+                            <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#purchase_orders_table')"><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                            <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#purchase_orders_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                            <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#purchase_orders_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+                            <button type="button" class="ms-1 btn btn-secondary" data-bs-toggle="modal" data-bs-target="#purchase_order_modal"><i class="mdi mdi-plus" data-bs-toggle="tooltip" title="Agregar"></i> Agregar</button>
+                        </div>
+                        </span>
+                <div class="d-flex align-items-center">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+                        <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#purchase_orders_table">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body border">
+                <div class="d-flex justify-content-between align-items-center">
+                    <form class="row row-cols-lg-auto g-3 align-items-center" method="get">
+                        <div class="col-12">
+                            <label for="company">Empresa: </label>
+                            <select class="form-select" id="company" name="company">
+                                    <option value="0">Todas</option>
+                                {% for key, value in companies.items %}
+                                    <option value="{{ key }}" {% if key == company %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="from">Desde: {{ from_date }}</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="from_date" name="from_date" value="{{ from_date }}">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="until">Hasta: </label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="until_date" name="until_date" value="{{ until_date }}">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            
+                            <button type="submit" class="btn btn-primary" style="margin-top: 23px;">
+                                <i class="mdi mdi-filter"></i> Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body table-responsive">
+                <table id="purchase_orders_table" class="table table-sm table-striped table-bordered" style="width:100%;">
+                    <thead>
+                    <tr>
+                        <td>Orden Compra</td>
+                        <td>Proveedor</td>
+                        <td>Compañia</td>
+                        <td>Requisición</td>
+                        <td>Fecha OC</td>
+                        <td>Subtotal</td>
+                        <td>Impuestos</td>
+                        <td>Total</td>
+                        <td>CXP Registrada</td>
+                        <td>Factura</td>
+                        <td>Estatus Factura</td>
+                        <td>Estatus</td>
+                        <td></td>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                    <tr>
+                        <td>Orden Compra</td>
+                        <td>Proveedor</td>
+                        <td>Compañia</td>
+                        <td>Requisición</td>
+                        <td>Fecha OC</td>
+                        <td>Subtotal</td>
+                        <td>Impuestos</td>
+                        <td>Total</td>
+                        <td>CXP Registrada</td>
+                        <td>Factura</td>
+                        <td>Estatus Factura</td>
+                        <td>Estatus</td>
+                        <td></td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="purchase_order_modal" tabindex="-1" aria-labelledby="purchase_order_modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body" id="purchase_order_modalContent"></div>
+        </div>
+    </div>
+</div>
+  
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/administrator.js' %}"></script>
+{% endblock %}

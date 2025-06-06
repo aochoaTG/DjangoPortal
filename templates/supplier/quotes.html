@@ -1,0 +1,93 @@
+{% extends 'layouts/base_supplier.html' %}{% block page_title %} Solicitudes de cotización {% endblock %}{% block title %}Solicitudes de cotización{% endblock %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#quotes_table', 10)">10</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#quotes_table', 25)">25</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#quotes_table', 50)">50</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#quotes_table', 100)">100</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#quotes_table')"><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                    <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#quotes_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                    <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#quotes_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+
+                </div>
+                </span>
+                <div class="d-flex align-items-center">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+                        <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#quotes_table">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body table-responsive border">
+                <table id="quotes_table" class="table table-sm table-striped table-bordered" style="width:100%;">
+                    <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Proveedor</th>
+                        <th scope="col">Requisitor</th>
+                        <th scope="col">Compañia</th>
+                        <th scope="col">Notas</th>
+                        <th scope="col">Estatus</th>
+                        <th scope="col">Fecha Creación</th>
+                        <th scope="col">Cant. Partidas</th>
+                        <th scope="col">Cant. Solicitada</th>
+                        <th scope="col">Precio Total</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Proveedor</th>
+                        <th scope="col">Requisitor</th>
+                        <th scope="col">Compañia</th>
+                        <th scope="col">Notas</th>
+                        <th scope="col">Estatus</th>
+                        <th scope="col">Fecha Creación</th>
+                        <th scope="col">Cant. Partidas</th>
+                        <th scope="col">Cant. Solicitada</th>
+                        <th scope="col">Precio Total</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="loadQuoteModal" tabindex="-1" aria-labelledby="loadQuoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="loadQuoteModalLabel">Cargar cotización</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}                    
+                    {{ form.as_p }}  {# Renderiza los campos como párrafos #}
+                    <button type="submit">Guardar</button>
+                </form>
+            </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/quote_requests.js' %}"></script>
+{% endblock %}

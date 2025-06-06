@@ -1,0 +1,72 @@
+<div class="modal-body p-0">
+    <div class="card m-0">
+        {% if action == 'create' %}
+            <h5 class="card-header">Crear producto</h5>
+        {% else %}
+            <h5 class="card-header">Actualizar producto</h5>
+        {% endif %}
+
+        <div class="card-body">
+            <div class="card-content">
+                {% if action == 'create' %}
+                <form method="post" enctype="multipart/form-data" action="{% url 'supplier_items:product_create' %}">
+                {% else %}
+                <form method="post" enctype="multipart/form-data" action="{% url 'supplier_items:product_update' product.pk %}">
+                {% endif %}
+
+                    <div class="card-body">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="form-group row" id="group_{{ field.auto_id }}">
+                            <label for="{{ field.id_for_label }}" class="col-sm-4 text-end control-label col-form-label">
+                                {{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}:
+                            </label>
+                            <div class="col-sm-8">
+                                {{ field }}
+                            </div>
+                            {% for error in field.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-primary">
+                            {% if action == 'create' %}
+                                Crear
+                            {% else %}
+                                Actualizar
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'supplier_items:list' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        const input = document.querySelector('input[type="file"][name="image"]');
+
+        if (input) {
+            input.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const allowedExtensions = ['jpg', 'jpeg', 'png'];
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                    if (!allowedExtensions.includes(fileExtension)) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Archivo inválido',
+                            text: '❌ Solo se permiten archivos con extensión .jpg o .png',
+                            confirmButtonText: 'Entendido',
+                        });
+                        this.value = ''; // Limpia el input
+                    }
+                }
+            });
+        }
+    });
+</script>

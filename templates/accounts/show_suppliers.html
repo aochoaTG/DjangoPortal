@@ -1,0 +1,126 @@
+{% extends 'layouts/base_admin.html' %}
+{% load static %}
+{% block page_title %} Usuarios de proveedores {% endblock %}
+{% block title %}Usuarios de proveedores{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="javascript:void(0);" onclick="setTableLength('#suppliersUsersTable', 10)">10</a></li>
+                    <li><a class="dropdown-item" href="javascript:void(0);" onclick="setTableLength('#suppliersUsersTable', 25)">25</a></li>
+                    <li><a class="dropdown-item" href="javascript:void(0);" onclick="setTableLength('#suppliersUsersTable', 50)">50</a></li>
+                    <li><a class="dropdown-item" href="javascript:void(0);" onclick="setTableLength('#suppliersUsersTable', 100)">100</a></li>
+                </ul>
+            </div>
+            <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#suppliersUsersTable')" ><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+            <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#suppliersUsersTable')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+            <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#suppliersUsersTable')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+            <button type="button" class="ms-1 btn btn-secondary" data-bs-toggle="modal" data-bs-target="#userModal"><i class="mdi mdi-plus" data-bs-toggle="tooltip" title="Agregar"></i> Agregar</button>
+        </div>
+        </span>
+        <div class="d-flex align-items-center">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+            <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#suppliersUsersTable">
+        </div>
+        </div>
+        </div>
+        <div class="card-body table-responsive">
+            <table id="suppliersUsersTable" class="table table-sm table-striped table-bordered" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Fecha unión</th>
+                        <th>Último ingreso</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="userModalLabel">Usuarios de proveedores <i class="bi bi-ev-station"></i></h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" action="{% url 'create_supplier_user' %}">
+            {% csrf_token %}
+            {% for field in supplier_form %}
+                {% if field.name not in "is_staff is_active" %}
+                <div class="form-group row">
+                    <label for="{{ field.id_for_label }}" class="col-sm-3 text-end control-label col-form-label">{{ field.label }}</label>
+                    <div class="col-sm-9">
+                        {{ field }}
+                    </div>
+                    {% if field.help_text %}
+                        <small class="col-3"></small>
+                        <small class="form-text text-muted col-9">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endfor %}
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="updateSupplierModal" tabindex="-1" aria-labelledby="updateSupplierModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body" id="updateSupplierModalContent">
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+<script src="{% static 'js/accounts.js' %}"></script>
+<script>
+    $('#updateSupplierModal').on('show.bs.modal', function (event) {
+        let button = $(event.relatedTarget); // Botón que abre el modal
+        // Extraer los atributos data-* del botón/enlace
+        let id = button.data('id');
+
+        // Vamos a mandar a pedir los datos del formulario por medio de AJAX
+        $.ajax({
+            url: "/accounts/update_supplier_account/" + id + '/',
+            method: 'GET',
+            success: function(data) {
+                console.log(data);
+                // Buscamos el elemento con el id #updateSupplierModalContent
+                $('#updateSupplierModalContent').html(data.html);
+            }
+        });
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,150 @@
+{% extends 'layouts/base_admin.html' %}
+{% load static %}
+{% block page_title %} Comunicados {% endblock %}
+{% block title %}Comunicados{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <ul class="nav nav-tabs" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" data-bs-target="#home-tab-pane" role="tab"><span class="hidden-sm-up"></span><span class="hidden-xs-down">Todos</span></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" role="tab"><span class="hidden-sm-up"></span><span class="hidden-xs-down">Vistos</span></a>
+              </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+              <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                  <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 10)">10</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 25)">25</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 50)">50</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 100)">100</a></li>
+                                </ul>
+                            </div>
+                            <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#notices_table')" ><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                            <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#notices_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                            <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#notices_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+                            <button type="button" class="ms-1 btn btn-secondary" data-bs-toggle="modal" data-bs-target="#noticeModal"><i class="mdi mdi-plus" data-bs-toggle="tooltip" title="Agregar"></i> Agregar</button>
+                        </div>
+                        </span>
+                        <div class="d-flex align-items-center">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+                            <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#notices_table">
+                        </div>
+                        </div>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table id="notices_table" class="table table-sm table-striped table-bordered" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Título</th>
+                                        <th>Texto</th>
+                                        <th>Publicado</th>
+                                        <th>Visibilidad</th>
+                                        <th>Creado por</th>
+                                        <th>Fecha de creación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Título</th>
+                                        <th>Texto</th>
+                                        <th>Publicado</th>
+                                        <th>Visibilidad</th>
+                                        <th>Creado por</th>
+                                        <th>Fecha de creación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">Vistos</div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="noticeModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="userModalLabel">Comunicados </h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+            <div class="card-body">
+                {% for field in form %}
+                    <div class="form-group row">
+                        <label for="{{ field.id_for_label }}" class="col-sm-3 text-end control-label col-form-label">{{ field.label }}</label>
+                        <div class="col-sm-9">
+                            {{ field }}
+                        </div>
+                         <!-- Muestra el input del campo -->
+                        {% if field.help_text %} <!-- Muestra texto de ayuda si existe -->
+                            <small class="col-3"></small>
+                            <small class="form-text text-muted col-9">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %} <!-- Muestra errores si existen -->
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+          </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="showNoticeModal" tabindex="-1" aria-labelledby="showNoticeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="col">
+            <div class="card h-100">
+              <img id="show_image" src="..." class="img-thumbnail" alt="..." style="max-height: 400px;">
+              <div class="card-body">
+                <h5 class="card-title" id="show_title"></h5>
+                <p class="card-text" id="show_text"></p>
+              </div>
+              <div class="card-footer">
+                <small id="show_published_at" class="text-body-secondary"></small>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/administrator.js' %}"></script>
+{% endblock %}

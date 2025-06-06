@@ -1,0 +1,143 @@
+{% extends 'layouts/base_admin.html' %}
+
+{% block page_title %} Solicitudes de cotización {% endblock %}
+
+{% block title %}
+    <h4>
+    {% if mode == 'editar' %}
+        Editando solicitud #{{ quote_id }}
+    {% else %}
+        Crear nueva solicitud de cotización
+    {% endif %}
+</h4>
+{% endblock %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <form method="post" action="{% if mode == 'editar' %}{% url 'edit_quote_request' quote_id %}{% endif %}">
+            {% csrf_token %}
+
+            <div class="card {% if mode == 'editar' %}border-warning{% else %}border-success{% endif %}">
+                <div class="card-body">
+                    <div class="row">
+                    {% for field in quote_form %}
+                        <div class="col-4">
+                            <label for="{{ field.id_for_label }}" class="text-end control-label col-form-label">
+                                {{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}:
+                            </label>
+                            <div class="col-sm-12">
+                                {{ field }}
+                            </div>
+                            {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <br>
+            <h4>Partidas</h4>
+            <div class="card">
+                <div class="card-body">
+                    <!-- ✅ Importante: gestión del formset -->
+                    {{ item_formset.management_form }}
+
+                    <table id="items-table" class="table w-100">
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Cantidad</th>
+                                <th>Unidad</th>
+                                <th>Precio</th>
+                                <th>Moneda</th>
+                                <th>Notas</th>
+                                <th>Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for form in item_formset %}
+                        <tr class="item-row">
+                            {% for field in form.hidden_fields %}
+                                {{ field }}
+                            {% endfor %}
+                            {% for field in form.visible_fields %}
+                                <td>{{ field }}</td>
+                            {% endfor %}
+                            <td>
+                                {% if form.can_delete %}
+                                    <label class="form-check-label">
+                                        {{ form.DELETE }} <i class="mdi mdi-trash-can-outline text-danger"></i>
+                                    </label>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Cantidad</th>
+                                <th>Unidad</th>
+                                <th>Precio</th>
+                                <th>Moneda</th>
+                                <th>Notas</th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <button type="button" id="add-item" class="btn btn-sm btn-info"><i class="mdi mdi-plus"></i> Agregar Ítem</button>
+            <button type="submit" class="btn btn-sm btn-primary"><i class="mdi mdi-content-save"></i> Guardar Solicitud</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/quote_requests.js' %}"></script>
+<script>
+    $(document).ready(function() {
+        $('#supplier-select').select2({
+            placeholder: "Selecciona una o más opciones",
+            allowClear: true,
+            closeOnSelect: false
+        });
+
+        let totalForms = $("#id_{{ item_formset.management_form.prefix }}-TOTAL_FORMS");
+        let formIndex = parseInt(totalForms.val());
+
+        $("#add-item").click(function() {
+            let newRow = $(".item-row:first").clone();
+
+            // Limpiar campos
+            newRow.find("input, select, textarea").each(function() {
+                let name = $(this).attr("name").replace(/-\d+-/, `-${formIndex}-`);
+                let id = $(this).attr("id").replace(/-\d+-/, `-${formIndex}-`);
+                $(this).attr({"name": name, "id": id});
+                if ($(this).attr("type") !== "checkbox") {
+                    $(this).val("");
+                } else {
+                    $(this).prop("checked", false);
+                }
+            });
+
+            newRow.appendTo("#items-table tbody");
+            formIndex++;
+            totalForms.val(formIndex);
+        });
+
+        // Opcional: ocultar fila al marcar eliminar (puedes dejarlo si quieres borrar visualmente)
+        $(document).on("change", "input[type='checkbox'][name$='-DELETE']", function() {
+            if ($(this).is(":checked")) {
+                $(this).closest("tr").addClass("table-danger");
+            } else {
+                $(this).closest("tr").removeClass("table-danger");
+            }
+        });
+    });
+</script>
+{% endblock %}

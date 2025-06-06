@@ -1,0 +1,265 @@
+{% extends 'layouts/base_admin.html' %}
+{% load static %}
+{% block page_title %} Comunicados {% endblock %}
+{% block title %}Comunicados{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="col-12">
+        <div class="card">
+            <ul class="nav nav-tabs" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" data-bs-target="#home-tab-pane" role="tab"><span class="hidden-sm-up"></span><span class="hidden-xs-down">Todos</span></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" role="tab"><span class="hidden-sm-up"></span><span class="hidden-xs-down">Vistos</span></a>
+              </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+              <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                  <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 10)">10</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 25)">25</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 50)">50</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setTableLength('#notices_table', 100)">100</a></li>
+                                </ul>
+                            </div>
+                            <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#notices_table')" ><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                            <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#notices_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                            <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#notices_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+                            <button type="button" class="ms-1 btn btn-secondary" data-bs-toggle="modal" data-bs-target="#noticeModal"><i class="mdi mdi-plus" data-bs-toggle="tooltip" title="Agregar"></i> Agregar</button>
+                        </div>
+                        </span>
+                        <div class="d-flex align-items-center">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+                            <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#notices_table">
+                        </div>
+                        </div>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table id="notices_table" class="table table-sm table-striped table-bordered" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Título</th>
+                                        <th>Texto</th>
+                                        <th>Publicado</th>
+                                        <th>Visibilidad</th>
+                                        <th>Creado por</th>
+                                        <th>Fecha de creación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Título</th>
+                                        <th>Texto</th>
+                                        <th>Publicado</th>
+                                        <th>Visibilidad</th>
+                                        <th>Creado por</th>
+                                        <th>Fecha de creación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">Vistos</div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="noticeModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="userModalLabel">Comunicados </h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        <form method="post" enctype="multipart/form-data" id="noticeForm">
+            {% csrf_token %}
+            <div class="modal-body">
+            <div class="card-body">
+              {% for field in form %}
+                <div class="form-group row">
+                  <label for="{{ field.id_for_label }}" class="col-sm-3 text-end control-label col-form-label">{{ field.label }}</label>
+                  <div class="col-sm-9">
+                      {% if field.field.widget.input_type == 'date' %}
+                          <input type="date" 
+                                class="form-control" 
+                                name="{{ field.name }}" 
+                                id="{{ field.id_for_label }}" 
+                                value="{{ field.value|date:'Y-m-d'|default:'' }}">
+                      {% else %}
+                          {{ field }}
+                      {% endif %}
+                  </div>
+                  {% if field.help_text %}
+                      <small class="form-text text-muted">{{ field.help_text }}</small>
+                  {% endif %}
+                  {% for error in field.errors %}
+                      <div class="text-danger">{{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endfor %}
+          </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="showNoticeModal" tabindex="-1" aria-labelledby="showNoticeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="col">
+            <div class="card h-100">
+              <img id="show_image" src="..." class="img-thumbnail" alt="..." style="max-height: 400px;">
+              <div class="card-body">
+                <h5 class="card-title" id="show_title"></h5>
+                <p class="card-text" id="show_text"></p>
+              </div>
+              <div class="card-footer">
+                <small id="show_published_at" class="text-body-secondary"></small>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="editNoticeModal" tabindex="-1" aria-labelledby="editNoticeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="d-flex justify-content-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/administrator.js' %}"></script>
+<script>
+  $(document).ready(function() {
+      $('#noticeForm').on('submit', function(event) {
+          event.preventDefault();
+
+          var formData = new FormData(this);
+
+          var form = $(this);
+          var url = form.attr('action');
+          var button = form.find('button[type="submit"]');
+          button.addClass('disabled');
+          button.html('Guardando...');
+          
+          $.ajax({
+              url: '{% url "notices" %}', // Cambia esto por la URL de tu vista
+              type: 'POST',
+              data: formData,
+              processData: false,
+              contentType: false,
+              success: function(response) {
+                  console.log(response);
+                  button.removeClass('disabled');
+                  if(response.success) {
+                      Swal.fire({
+                          title: '¡Guardado! ✅',
+                          text: 'El comunicado se ha guardado con éxito.',
+                          icon: 'success',
+                          confirmButtonText: 'Aceptar'
+                      }).then(() => {
+                          $('#noticeModal').modal('hide'); // Cierra el modal
+                          location.reload(); // Refresca la tabla si tienes una lista
+                      });
+                  } else {
+                      Swal.fire({
+                          title: 'Error 😞',
+                          text: 'No se pudo guardar el comunicado. Revisa los campos.',
+                          icon: 'error',
+                          confirmButtonText: 'Aceptar'
+                      });
+                  }
+              },
+              error: function() {
+                  Swal.fire({
+                      title: 'Error del servidor 😵',
+                      text: 'Algo salió mal. Intenta más tarde.',
+                      icon: 'error',
+                      confirmButtonText: 'Aceptar'
+                  });
+              }
+          });
+      });
+  });
+
+  function confirm_delete(id) {
+      // Priemero vamos a prevenir el comportamiento por defecto del formulario
+      event.preventDefault();
+      // Luego, vamos a mostrar un SweetAlert de confirmación
+      Swal.fire({
+          title: '¿Estás seguro?',
+          text: "¡No podrás revertir esto!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Sí, eliminarlo'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              // Si el usuario confirma, entonces hacemos submit al formulario
+              document.getElementById('delete-form-' + id).submit();
+          }
+      });
+  }
+
+  // Cuando se muestré el modal editNoticeModal
+  $('#editNoticeModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget); // Botón que activó el modal
+      var id = button.data('id'); // Extrae la información de los atributos data-*
+      var url = button.data('url'); // URL para cargar el formulario
+
+      // Carga el contenido del formulario en el modal
+      $.ajax({
+          url: url,
+          type: 'GET',
+          success: function(response) {
+              $('#editNoticeModal .modal-body').html(response);
+          },
+          error: function() {
+              $('#editNoticeModal .modal-body').html('<p>Error al cargar el formulario.</p>');
+          }
+      });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>TotalGas - Registro</title>
+
+    <!-- Font Icon -->
+    <link rel="stylesheet" href="{% static 'login/fonts/material-icon/css/material-design-iconic-font.min.css' %}">
+
+    <!-- Main css -->
+    <link rel="stylesheet" href="{% static 'login/css/style.css' %}">
+    <link href="{% static 'admintemplate/dist/css/style.min.css' %}" rel="stylesheet" />
+        <!-- Bootstrap tether Core JavaScript -->
+    <script src="{% static 'admintemplate/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'admintemplate/assets/images/logo-icon.png' %}"/>
+
+    <style>
+        /* Estilo para el botón deshabilitado */
+        .form-submit:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main pt-5">
+        <section class="signup">
+            <div class="container">
+                <div class="signup-content">
+                    <div class="signup-form">
+                        <h2 class="form-title">Regístrate</h2>
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ wizard.management_form }}
+
+                            <fieldset class="border p-3 mb-3">
+                                <legend>Paso {{ wizard.steps.step1 }} de {{ wizard.steps.count }}</legend>
+                                {% for field in wizard.form %}
+                                    <div class="form-group">
+                                        {{ field }}
+                                        <!-- Si sale un error -->
+                                         {% if field.errors %}
+                                            <div class="error">
+                                                {{ field.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </fieldset>
+
+                            <div class="d-flex justify-content-between">
+                                {% if wizard.steps.prev %}
+                                    <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}" class="btn btn-secondary">Anterior</button>
+                                {% endif %}
+                                {% if wizard.steps.current == '0' %}
+                                    <button type="submit" class="btn btn-primary">Siguiente</button>
+                                {% elif wizard.steps.current == '1' %}
+                                    <button type="submit" class="btn btn-primary">Siguiente</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-primary">Finalizar</button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="signup-image text-center" style="margin: 0;">
+                        <figure><img src="{% static 'login/images/signup-image.jpg' %}" alt="sing up image"></figure>
+                        <a href="{% url 'login' %}" class="signup-image-link btn btn-sm btn-primary"><i class="zmdi zmdi-arrow-left"></i> ¡Ya estoy registrado!</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="serviceTermsModal" tabindex="-1" aria-labelledby="serviceTermsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Términos y Condiciones de Servicio para Proveedores de TotalGas</h5>
+                        <h6 class="card-subtitle mb-2 text-body-secondary">Fecha de entrada en vigor: Pendiente</h6>
+                        <p class="card-text">
+                            Bienvenido al Portal de Proveedores de TotalGas. Al registrarse y utilizar nuestros servicios, usted acepta los siguientes términos y condiciones. Si no está de acuerdo con alguno de estos términos, no debe utilizar nuestros servicios.
+                        </p>
+                        <h6>1. Aceptación de los términos</h6>
+                        <p>Al acceder y utilizar nuestros servicios, usted acepta estos términos y condiciones, que forman un acuerdo legalmente vinculante entre usted y [Nombre de tu plataforma]. Nos reservamos el derecho de modificar, actualizar o revisar estos términos en cualquier momento, por lo que le recomendamos que los revise periódicamente.</p>
+                        <h6>2. Registro y cuentas de usuario</h6>
+                        <p>Para acceder a nuestros servicios, debe completar el proceso de registro proporcionando información precisa y actualizada. Usted es responsable de mantener la confidencialidad de su cuenta y de cualquier actividad que ocurra bajo su cuenta. Si sospecha que alguien más ha accedido a su cuenta, debe notificarnos de inmediato.</p>
+
+                        <h6>3. Uso de los servicios</h6>
+                        <p>Usted se compromete a utilizar nuestros servicios solo para fines legales y según las políticas de [Nombre de tu plataforma]. Está prohibido realizar lo siguiente:
+                        Ingresar información falsa o engañosa.
+                        Compartir su cuenta con terceros sin nuestra autorización.
+                        Utilizar nuestros servicios para realizar actividades ilegales o fraudulentas.
+                        Violar cualquier normativa local, nacional o internacional relacionada con el comercio, privacidad o propiedad intelectual.</p>
+
+                        <h6>4. Propiedad intelectual</h6>
+                        <p>Todos los derechos sobre el contenido y materiales proporcionados por [Nombre de tu plataforma], incluidos pero no limitados a software, diseño, logotipos y textos, son propiedad de [Nombre de tu plataforma] o de nuestros licenciantes. No se le concede ningún derecho de propiedad sobre estos materiales, y se compromete a no reproducir, distribuir, o modificar ninguno de estos sin nuestra autorización previa.</p>
+
+                        <h6>5. Protección de datos y privacidad</h6>
+                        <p>Nos comprometemos a proteger su información personal de acuerdo con nuestra Política de Privacidad. Al registrarse en nuestra plataforma, usted autoriza a [Nombre de tu plataforma] a recopilar, procesar y almacenar sus datos personales conforme a las leyes de privacidad aplicables.</p>
+
+                        <h6>6. Responsabilidad</h6>
+                        <p>[Nombre de tu plataforma] no será responsable por ningún daño directo, indirecto, incidental, especial, consecuente o punitivo derivado de su uso o incapacidad de usar nuestros servicios, incluyendo pero no limitado a la pérdida de beneficios, datos, o cualquier otro perjuicio comercial.</p>
+
+                        <h6>7. Modificaciones de los términos</h6>
+                        <p>Nos reservamos el derecho de modificar, actualizar o cambiar estos Términos de Servicio en cualquier momento, con efecto inmediato después de su publicación en el sitio web. Le notificaremos sobre los cambios mediante un aviso en nuestra plataforma. Su uso continuo de nuestros servicios después de tales cambios constituye su aceptación de los nuevos términos.</p>
+
+                        <h6>8. Duración y cancelación</h6>
+                        <p>Este acuerdo permanecerá vigente hasta que cualquiera de las partes decida cancelarlo. Usted puede cancelar su cuenta en cualquier momento contactándonos a [email/contacto]. [Nombre de tu plataforma] se reserva el derecho de suspender o cancelar su cuenta si se detecta cualquier infracción de estos términos.</p>
+
+                        <h6>9. Resolución de disputas</h6>
+                        <p>Cualquier disputa relacionada con estos Términos de Servicio será resuelta en [especificar la jurisdicción o el método de resolución, por ejemplo, arbitraje o tribunales locales de [ciudad/país]]. Al aceptar estos términos, usted consiente la jurisdicción exclusiva de esos tribunales.</p>
+
+                        <h6>10. Términos adicionales</h6>
+                        <p>Además de estos términos, se aplicarán otras políticas que se encuentren disponibles en nuestra plataforma, como la Política de Privacidad y cualquier otra política relacionada con el uso de los servicios.</p>
+
+                        <h6>11. Aceptación de los términos</h6>
+                        <p>Al registrarse en nuestra plataforma y hacer clic en "Aceptar" o "Registrarse", usted acepta cumplir con estos Términos de Servicio. Si no está de acuerdo con estos términos, no debe utilizar nuestros servicios.</p>
+
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JS -->
+    <script src="{% static 'login/vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'login/js/main.js' %}"></script>
+    <script>
+        // Habilita el botón de registro si se aceptan los términos
+        document.getElementById('agree-term').addEventListener('change', function() {
+            document.getElementById('signup').disabled = !this.checked;
+        });
+    </script>
+</body><!-- This templates was made by Colorlib (https://colorlib.com) -->
+</html>

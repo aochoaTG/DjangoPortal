@@ -1,0 +1,130 @@
+{% extends 'layouts/base_supplier.html' %}
+{% load static %}
+{% block page_title %} Actualización de archivo electrónico {% endblock %}
+{% block title %}Actualización de archivo electrónico{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.fiscal_situation %}{{ supplier.fiscal_situation.url }}{% else %}{% static 'img/Constancia de Situación Fiscal.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_fiscal_situation" class="form-label">Constancia de Situación Fiscal</label>
+                                <input type="file" name="fiscal_situation" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_fiscal_situation">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.address_proof %}{{ supplier.address_proof.url }}{% else %}{% static 'img/Comprobante de Domicilio.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_fiscal_situation" class="form-label">Comprobante de Domicilio</label>
+                                <input type="file" name="address_proof" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_address_proof">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.bank_statement %}{{ supplier.bank_statement.url }}{% else %}{% static 'img/Carátula Bancaria.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_bank_statement" class="form-label">Carátula Bancaria</label>
+                                <input type="file" name="bank_statement" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_bank_statement">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.sat_positive_opinion %}{{ supplier.sat_positive_opinion.url }}{% else %}{% static 'img/Opinión Positiva del SAT.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_sat_positive_opinion" class="form-label">Opinión Positiva del SAT</label>
+                                <input type="file" name="sat_positive_opinion" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_sat_positive_opinion">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'sat_positive_opinion', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.incorporation_act %}{{ supplier.incorporation_act.url }}{% else %}{% static 'img/Acta Constitutiva.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_incorporation_act" class="form-label">Acta Constitutiva</label>
+                                <input type="file" name="incorporation_act" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_incorporation_act">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'sat_positive_opinion', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.legal_power %}{{ supplier.legal_power.url }}{% else %}{% static 'img/Poder Legal.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_legal_power" class="form-label">Poder Legal</label>
+                                <input type="file" name="legal_power" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_legal_power">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'legal_power', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.identification %}{{ supplier.identification.url }}{% else %}{% static 'img/Identificación.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_identification" class="form-label">Identificación</label>
+                                <input type="file" name="identification" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_identification">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.imss_opinion %}{{ supplier.imss_opinion.url }}{% else %}{% static 'img/Opinión del IMSS.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_imss_opinion" class="form-label">Opinión del IMSS</label>
+                                <input type="file" name="imss_opinion" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_imss_opinion">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.infonavit_opinion %}{{ supplier.infonavit_opinion.url }}{% else %}{% static 'img/Opinión del INFONAVIT.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_infonavit_opinion" class="form-label">Opinión del INFONAVIT</label>
+                                <input type="file" name="infonavit_opinion" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_infonavit_opinion">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.supplier_registration_request %}{{ supplier.supplier_registration_request.url }}{% else %}{% static 'img/Solicitud Alta de Proveedor.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_supplier_registration_request" class="form-label">Solicitud Alta de Proveedor</label>
+                                <input type="file" name="supplier_registration_request" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_supplier_registration_request">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.repse %}{{ supplier.repse.url }}{% else %}{% static 'img/REPSE.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_repse" class="form-label">REPSE</label>
+                                <input type="file" name="repse" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_repse">
+                            </div>
+                        </div>
+                        <div class="col-md-4"> <!-- 'fiscal_situation', 'address_proof', 'bank_statement', 'sat_positive_opinion', 'incorporation_act', 'legal_power', 'identification', 'imss_opinion', 'infonavit_opinion', 'supplier_registration_request', 'repse', 'confidentiality_agreement', 'induction_course' -->
+                            <div class="mb-3">
+                                <div class="ratio ratio-16x9">
+                                  <iframe src="{% if supplier.confidentiality_agreement %}{{ supplier.confidentiality_agreement.url }}{% else %}{% static 'img/Acta de Confidencialidad.pdf' %}{% endif %}" allowfullscreen=""></iframe>
+                                </div>
+                                <label for="id_fiscal_situation" class="form-label">Acta de Confidencialidad</label>
+                                <input type="file" name="fiscal_situation" class="form-control" accept=".jpg,.jpeg,.png,.pdf" id="id_fiscal_situation">
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="user_id" value="{{ supplier.user_id }}">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

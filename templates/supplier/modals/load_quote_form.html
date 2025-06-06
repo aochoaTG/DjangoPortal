@@ -1,0 +1,8 @@
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+
+{% csrf_token %}
+{% crispy form %}
+<input type="hidden" name="quote_id" value="{{ form.instance.id }}">

@@ -1,0 +1,483 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>TotalGas - Registro</title>
+
+    <!-- Font Icon -->
+    <link
+      rel="stylesheet"
+      href="{% static 'login/fonts/material-icon/css/material-design-iconic-font.min.css' %}"
+    />
+
+    <!-- Main css -->
+    <link rel="stylesheet" href="{% static 'login/css/style.css' %}" />
+    <link
+      href="{% static 'admintemplate/dist/css/style.min.css' %}"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap tether Core JavaScript -->
+    <script src="{% static 'admintemplate/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="{% static 'admintemplate/assets/images/logo-icon.png' %}"
+    />
+
+    <style>
+      /* Estilo para el botón deshabilitado */
+      .form-submit:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      /* Estilos para el formulario de registro de proveedores */
+      .logo-container {
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+      }
+
+      .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+
+      body {
+        background-color: #f5f5f5;
+        padding: 40px 0;
+      }
+
+      .password-feedback {
+        font-size: 0.8rem;
+        margin-top: 5px;
+      }
+
+      /* Para marcar los campos obligatorios con asterisco */
+      label.required::after {
+        content: " *";
+        color: red;
+      }
+
+      /* Sobrescribir la posición absolute de los labels */
+      form label,
+      .form-label {
+        position: static !important; /* Usa !important para asegurar que sobreescriba otros estilos */
+        display: block !important;
+        margin-bottom: 0.5rem !important;
+      }
+
+      /* Si también hay problemas con la ubicación de los inputs */
+      .form-control,
+      .form-select {
+        position: static !important;
+        width: 100% !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="">
+      <div
+        class="form-container"
+        style="
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 30px;
+          background-color: #fff;
+          border-radius: 10px;
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        "
+      >
+        <!-- Logo/Imagen corporativa -->
+        <div
+          class="logo-container mb-4"
+          style="
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+          "
+        >
+          <img
+            src="{% static 'img/logo.png' %}"
+            alt="Logo Corporativo"
+            class="img-fluid"
+          />
+        </div>
+
+        <h2 class="text-center mb-4">Registro de Proveedores</h2>
+
+        <form method="post" class="needs-validation" novalidate>
+          {% csrf_token %} {% if form.errors %}
+          <div class="alert alert-danger">
+            <strong>Se encontraron errores en el formulario.</strong> Por favor,
+            corrígelos para continuar.
+          </div>
+          {% endif %}
+
+          <div class="row">
+            <!-- Información de contacto -->
+            <div class="col-md-6 mb-4">
+              <h4 class="mb-3">Información de contacto</h4>
+
+              <div class="mb-3">
+                {{ form.username.label_tag }} {{ form.username }}
+                {% if form.username.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.username.errors }}
+                </div>
+                {% endif %}
+                {% if form.username.help_text %}
+                <small class="form-text text-muted">
+                  {{ form.username.help_text }}
+                </small>
+                {% endif %}
+              </div>
+              <div class="mb-3">
+                {{ form.email.label_tag }} {{ form.email }}
+                {% if form.email.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.email.errors }}
+                </div>
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.contact_person.label_tag }} {{ form.contact_person }}
+                {% if form.contact_person.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.contact_person.errors }}
+                </div>
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.phone_number.label_tag }} {{ form.phone_number }}
+                {% if form.phone_number.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.phone_number.errors }}
+                </div>
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.password1.label_tag }} {{ form.password1 }}
+                {% if form.password1.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.password1.errors }}
+                </div>
+                {% endif %} {% if form.password1.help_text %}
+                <div id="passwordStrength" class="password-feedback text-muted">
+                  {{ form.password1.help_text }}
+                </div>
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.password2.label_tag }} {{ form.password2 }}
+                {% if form.password2.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.password2.errors }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Información fiscal -->
+            <div class="col-md-6 mb-4">
+              <h4 class="mb-3">Información fiscal</h4>
+
+              <div class="mb-3">
+                {{ form.company.label_tag }} {{ form.company }}
+                {% if form.company.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.company.errors }}
+                </div>
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.address.label_tag }} {{ form.address }}
+                {% if form.address.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.address.errors }}
+                </div>
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.tax_regime.label_tag }} {{ form.tax_regime }}
+                {% if form.tax_regime.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.tax_regime.errors }}
+                </div>
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.rfc.label_tag }} {{ form.rfc }}
+                {% if form.rfc.errors %} <div class="invalid-feedback d-block">
+                  {{ form.rfc.errors }}
+                </div>
+                {% endif %} {% if form.rfc.help_text %}
+                <small class="form-text text-muted"
+                  >{{ form.rfc.help_text }}</small
+                >
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.supplier_type.label_tag }} {{ form.supplier_type }}
+                {% if form.supplier_type.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.supplier_type.errors }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 mt-4">
+            <button class="btn btn-primary btn-lg" type="submit">
+              Registrarse
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="serviceTermsModal"
+      tabindex="-1"
+      aria-labelledby="serviceTermsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-body">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">
+                  Términos y Condiciones de Servicio para Proveedores de
+                  TotalGas
+                </h5>
+                <h6 class="card-subtitle mb-2 text-body-secondary">
+                  Fecha de entrada en vigor: Pendiente
+                </h6>
+                <p class="card-text">
+                  Bienvenido al Portal de Proveedores de TotalGas. Al
+                  registrarse y utilizar nuestros servicios, usted acepta los
+                  siguientes términos y condiciones. Si no está de acuerdo con
+                  alguno de estos términos, no debe utilizar nuestros servicios.
+                </p>
+                <h6>1. Aceptación de los términos</h6>
+                <p>
+                  Al acceder y utilizar nuestros servicios, usted acepta estos
+                  términos y condiciones, que forman un acuerdo legalmente
+                  vinculante entre usted y [Nombre de tu plataforma]. Nos
+                  reservamos el derecho de modificar, actualizar o revisar estos
+                  términos en cualquier momento, por lo que le recomendamos que
+                  los revise periódicamente.
+                </p>
+                <h6>2. Registro y cuentas de usuario</h6>
+                <p>
+                  Para acceder a nuestros servicios, debe completar el proceso
+                  de registro proporcionando información precisa y actualizada.
+                  Usted es responsable de mantener la confidencialidad de su
+                  cuenta y de cualquier actividad que ocurra bajo su cuenta. Si
+                  sospecha que alguien más ha accedido a su cuenta, debe
+                  notificarnos de inmediato.
+                </p>
+
+                <h6>3. Uso de los servicios</h6>
+                <p>
+                  Usted se compromete a utilizar nuestros servicios solo para
+                  fines legales y según las políticas de [Nombre de tu
+                  plataforma]. Está prohibido realizar lo siguiente: Ingresar
+                  información falsa o engañosa. Compartir su cuenta con terceros
+                  sin nuestra autorización. Utilizar nuestros servicios para
+                  realizar actividades ilegales o fraudulentas. Violar cualquier
+                  normativa local, nacional o internacional relacionada con el
+                  comercio, privacidad o propiedad intelectual.
+                </p>
+
+                <h6>4. Propiedad intelectual</h6>
+                <p>
+                  Todos los derechos sobre el contenido y materiales
+                  proporcionados por [Nombre de tu plataforma], incluidos pero
+                  no limitados a software, diseño, logotipos y textos, son
+                  propiedad de [Nombre de tu plataforma] o de nuestros
+                  licenciantes. No se le concede ningún derecho de propiedad
+                  sobre estos materiales, y se compromete a no reproducir,
+                  distribuir, o modificar ninguno de estos sin nuestra
+                  autorización previa.
+                </p>
+
+                <h6>5. Protección de datos y privacidad</h6>
+                <p>
+                  Nos comprometemos a proteger su información personal de
+                  acuerdo con nuestra Política de Privacidad. Al registrarse en
+                  nuestra plataforma, usted autoriza a [Nombre de tu plataforma]
+                  a recopilar, procesar y almacenar sus datos personales
+                  conforme a las leyes de privacidad aplicables.
+                </p>
+
+                <h6>6. Responsabilidad</h6>
+                <p>
+                  [Nombre de tu plataforma] no será responsable por ningún daño
+                  directo, indirecto, incidental, especial, consecuente o
+                  punitivo derivado de su uso o incapacidad de usar nuestros
+                  servicios, incluyendo pero no limitado a la pérdida de
+                  beneficios, datos, o cualquier otro perjuicio comercial.
+                </p>
+
+                <h6>7. Modificaciones de los términos</h6>
+                <p>
+                  Nos reservamos el derecho de modificar, actualizar o cambiar
+                  estos Términos de Servicio en cualquier momento, con efecto
+                  inmediato después de su publicación en el sitio web. Le
+                  notificaremos sobre los cambios mediante un aviso en nuestra
+                  plataforma. Su uso continuo de nuestros servicios después de
+                  tales cambios constituye su aceptación de los nuevos términos.
+                </p>
+
+                <h6>8. Duración y cancelación</h6>
+                <p>
+                  Este acuerdo permanecerá vigente hasta que cualquiera de las
+                  partes decida cancelarlo. Usted puede cancelar su cuenta en
+                  cualquier momento contactándonos a [email/contacto]. [Nombre
+                  de tu plataforma] se reserva el derecho de suspender o
+                  cancelar su cuenta si se detecta cualquier infracción de estos
+                  términos.
+                </p>
+
+                <h6>9. Resolución de disputas</h6>
+                <p>
+                  Cualquier disputa relacionada con estos Términos de Servicio
+                  será resuelta en [especificar la jurisdicción o el método de
+                  resolución, por ejemplo, arbitraje o tribunales locales de
+                  [ciudad/país]]. Al aceptar estos términos, usted consiente la
+                  jurisdicción exclusiva de esos tribunales.
+                </p>
+
+                <h6>10. Términos adicionales</h6>
+                <p>
+                  Además de estos términos, se aplicarán otras políticas que se
+                  encuentren disponibles en nuestra plataforma, como la Política
+                  de Privacidad y cualquier otra política relacionada con el uso
+                  de los servicios.
+                </p>
+
+                <h6>11. Aceptación de los términos</h6>
+                <p>
+                  Al registrarse en nuestra plataforma y hacer clic en "Aceptar"
+                  o "Registrarse", usted acepta cumplir con estos Términos de
+                  Servicio. Si no está de acuerdo con estos términos, no debe
+                  utilizar nuestros servicios.
+                </p>
+
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JS -->
+    <script src="{% static 'login/vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'login/js/main.js' %}"></script>
+    <script>
+      // Habilita el botón de registro si se aceptan los términos
+      document
+        .getElementById("agree-term")
+        .addEventListener("change", function () {
+          document.getElementById("signup").disabled = !this.checked;
+        });
+    </script>
+    <!-- Script para validación de contraseñas -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const password1 = document.getElementById(
+          "{{ form.password1.id_for_label }}"
+        );
+        const password2 = document.getElementById(
+          "{{ form.password2.id_for_label }}"
+        );
+        const passwordStrength = document.getElementById("passwordStrength");
+
+        if (password1 && password2) {
+          password1.addEventListener("input", function () {
+            const value = password1.value;
+            const hasUpperCase = /[A-Z]/.test(value);
+            const hasLowerCase = /[a-z]/.test(value);
+            const hasNumber = /[0-9]/.test(value);
+            const isLongEnough = value.length >= 8;
+
+            let strength = "Débil";
+            let color = "text-danger";
+
+            if (isLongEnough && hasUpperCase && hasLowerCase && hasNumber) {
+              strength = "Fuerte";
+              color = "text-success";
+            } else if (
+              (isLongEnough && (hasUpperCase || hasLowerCase) && hasNumber) ||
+              (isLongEnough && hasUpperCase && hasLowerCase)
+            ) {
+              strength = "Media";
+              color = "text-warning";
+            }
+
+            if (passwordStrength) {
+              passwordStrength.innerHTML = `Fortaleza de la contraseña: <span class="${color}">${strength}</span><br>
+                                                    La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y números.`;
+            }
+          });
+        }
+
+        // Validación del RFC
+        const rfc = document.getElementById("{{ form.rfc.id_for_label }}");
+        if (rfc) {
+          rfc.addEventListener("input", function () {
+            rfc.value = rfc.value.toUpperCase();
+          });
+        }
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const phoneInput = document.querySelector('input[name="phone_number"]');
+
+        phoneInput.addEventListener("input", function () {
+          // Elimina todo lo que no sea número
+          this.value = this.value.replace(/\D/g, "").slice(0, 10);
+        });
+      });
+    </script>
+  </body>
+  <!-- This templates was made by Colorlib (https://colorlib.com) -->
+</html>
