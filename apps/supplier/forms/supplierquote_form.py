@@ -4,16 +4,26 @@ from crispy_forms.layout import Submit, Layout, Row, Column
 from apps.supplier.models import SupplierQuote
 
 class SupplierQuoteForm(forms.ModelForm):
+    # ■ Sobreescribimos el campo para meter formato y aceptar sólo YYYY-MM-DD
+    validity_date = forms.DateField(
+        widget=forms.DateInput(
+            attrs={'type': 'date', 'class': 'form-control'},
+            format='%Y-%m-%d',              # <- aquí el formato que el <input> entiende
+        ),
+        input_formats=['%Y-%m-%d'],         # <- cómo parsear la fecha al POST
+        label="Fecha de Validez",
+        help_text="Selecciona la fecha hasta la cual es válida la cotización"
+    )
+
     class Meta:
         model = SupplierQuote
-        # Campos visibles para el proveedor
         fields = [
             'quote_number', 'validity_date', 'delivery_time', 'payment_terms',
             'subtotal', 'tax', 'total', 'currency',
             'quote_file_1', 'quote_file_2', 'notes',
         ]
+        # Ya no necesitamos declarar widget para validity_date aquí
         widgets = {
-            'validity_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'delivery_time': forms.TextInput(attrs={'placeholder': 'Ejemplo: 5 días hábiles', 'class': 'form-control'}),
             'payment_terms': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
@@ -21,17 +31,17 @@ class SupplierQuoteForm(forms.ModelForm):
             'quote_file_2': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
         labels = {
-            'quote_number': "Número de Cotización",
-            'validity_date': "Fecha de Validez",
-            'delivery_time': "Tiempo de Entrega",
-            'payment_terms': "Condiciones de Pago",
-            'subtotal': "Subtotal",
-            'tax': "Impuestos",
-            'total': "Total",
-            'currency': "Moneda",
-            'quote_file_1': "Archivo de Cotización 1",
-            'quote_file_2': "Archivo de Cotización 2",
-            'notes': "Notas",
+            'quote_number':      "Número de Cotización",
+            # 'validity_date':    ya está arriba
+            'delivery_time':     "Tiempo de Entrega",
+            'payment_terms':     "Condiciones de Pago",
+            'subtotal':          "Subtotal",
+            'tax':               "Impuestos",
+            'total':             "Total",
+            'currency':          "Moneda",
+            'quote_file_1':      "Archivo de Cotización 1",
+            'quote_file_2':      "Archivo de Cotización 2",
+            'notes':             "Notas",
         }
 
     def __init__(self, *args, **kwargs):

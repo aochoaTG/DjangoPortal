@@ -19,7 +19,6 @@ def index_supplier(request):
     """Vista de inicio de proveedores."""
     return render(request, 'supplier/index.html')
 
-@staff_member_required
 @login_required
 def supplier_update(request, user_id):
     """Vista de edición de proveedores."""
@@ -35,7 +34,6 @@ def supplier_update(request, user_id):
     return render(request, 'supplier/supplier_update.html', {'supplier': supplier})
 
 
-@staff_member_required
 @login_required
 def supplier_create(request, user_id):
     """Vista de creación de proveedores."""

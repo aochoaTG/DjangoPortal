@@ -1,29 +1,29 @@
 """ Vistas para la creación y gestión de solicitudes de cotización. """
 import os
 import io
-from django.urls import reverse
-from django.middleware.csrf import get_token
-from django.conf import settings
-from django.shortcuts import render, get_object_or_404, redirect
-from reportlab.pdfgen import canvas
-from django.http import HttpResponse, JsonResponse
-from django.db.models import Count, Sum, F
-from django.forms import modelformset_factory
-from reportlab.lib import colors
-from django.contrib import messages
+from django.core.mail               import mail_admins
+from django.urls                    import reverse
+from django.middleware.csrf         import get_token
+from django.conf                    import settings
+from django.shortcuts               import render, get_object_or_404, redirect
+from reportlab.pdfgen               import canvas
+from django.http                    import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.db.models               import Count, Sum, F
+from django.forms                   import modelformset_factory
+from reportlab.lib                  import colors
+from django.contrib                 import messages
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from apps.notifications.models import Notification
-from PyPDF2 import PdfReader, PdfWriter
-from datetime import timedelta
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import Table, TableStyle, Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
-from apps.supplier.models import Supplier, SupplierQuoteRequest, SupplierQuoteRequestItem
-from apps.supplier.services import sql_scripts
-from apps.supplier.forms import *
-from common.utils import *
-
+from django.utils                   import timezone
+from apps.notifications.models      import Notification
+from PyPDF2                         import PdfReader, PdfWriter
+from datetime                       import timedelta
+from reportlab.lib.pagesizes        import letter
+from reportlab.platypus             import Table, TableStyle, Paragraph
+from reportlab.lib.styles           import getSampleStyleSheet
+from apps.supplier.models           import Supplier, SupplierQuote, SupplierQuoteRequest, SupplierQuoteRequestItem
+from apps.supplier.services         import sql_scripts
+from apps.supplier.forms            import *
+from common.utils                   import *
 
 @login_required
 def request_quote(request):
@@ -140,7 +140,10 @@ def request_quote(request):
 @login_required
 def quote_requests(request):
     """ Vista para mostrar las solicitudes de cotización del proveedor. """
-    return render(request, 'supplier/quote_requests.html')
+    if request.user.is_staff:
+        return render(request, 'supplier/admin_quote_requests.html')
+    else:
+        return render(request, 'supplier/supplier_quote_requests.html')
 
 
 def delete_quote_request(request, id):
@@ -354,51 +357,90 @@ def quotes_table(request):
     incluyendo datos agregados como total de ítems, proveedores, cantidad total y precio total.
     """
     supplier = Supplier.objects.get(user=request.user)
-    quote_requests = SupplierQuoteRequest.objects.filter(supplier_id=supplier).annotate(
+    # request.user.id = 156
+    # supplier.id = 22
+
+    # Vamos a imprimir los datos de supplier
+    quote_requests = SupplierQuoteRequest.objects.filter(supplier=supplier.id).annotate(
         total_items=Count('items'),
         total_providers=Count('supplier', distinct=True),
         total_quantity=Sum('items__quantity'),
         total_price=Sum(F('items__quantity') * F('items__price'))
-    )
+    ).order_by('created_at')
 
     status_map = {
-        'PENDIENTE': '<span class="badge bg-warning">🆕 Por cotizar</span>',
-        'VISTA': '<span class="badge bg-primary">👀 Vista</span>',
-        'EN REVISION': '<span class="badge bg-info">⏳ En revisión</span>',
-        'ACEPTADA': '<span class="badge bg-success">✅ Aceptada</span>',
-        'RECHAZADA': '<span class="badge bg-danger">❌ Rechazada</span>',
-        'EXPIRADA': '<span class="badge bg-danger">⏲️ Expirada</span>',
+        'PENDIENTE': '<span class="badge d-block bg-warning">🆕 Por cotizar</span>',
+        'VISTA': '<span class="badge d-block bg-primary">👀 Vista</span>',
+        'EN REVISION': '<span class="badge d-block bg-info">⏳ En revisión</span>',
+        'COTIZADA': '<span class="badge d-block bg-success">💰 Cotizada</span>',
+        'ACEPTADA': '<span class="badge d-block bg-success">✅ Aceptada</span>',
+        'RECHAZADA': '<span class="badge d-block bg-danger">❌ Rechazada</span>',
+        'EXPIRADA': '<span class="badge d-block bg-danger">⏲️ Expirada</span>',
     }
 
-    data = [
-        {
-            'id': f'{quote.id}',
-            'supplier': f'{quote.supplier}',
-            'user': f'{quote.user}',
-            'company': f'{quote.company}',
-            'notes': f'{quote.notes}',
-            # Mapeo del estado
-            'status': f'{status_map.get(quote.status, quote.status)}',
-            'created_at': f'{quote.created_at}',
-            'lines': f'{int(quote.total_items or 0)}',
-            'qty_requested': f'{int(quote.total_quantity or 0)}',
-            'price_total': f'{quote.total_price}',
-            'actions': f'''
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Acciones</button>
-                    <div class="dropdown-menu">
-                    <a class="dropdown-item" href="{reverse('generate_rfq_pdf', args=[quote.id])}" target="_blank"><i class="mdi mdi-eye"></i> Ver</a>
-                    <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#loadQuoteModal" data-quote-id="{quote.id}"><i class="mdi mdi-upload"></i> Cargar cotización</a>
-                    <a class="dropdown-item" href="javascript:void(0);" onClick="reject_request({quote.id});"><i class="mdi mdi-delete"></i>Rechazar</a>
-                    </div>
-                </div>
-            ''',
-        }
-        for quote in quote_requests
-    ]
+    data = []
+
+    for quote in quote_requests:
+
+        # indicadores de estado
+        is_cotizada = (quote.status == 'COTIZADA')
+        is_locked   = (quote.status in ('RECHAZADA', 'EXPIRADA'))
+
+        # Texto e ícono para el botón de cotización
+        carga_label = 'Actualizar cotización' if is_cotizada else 'Cargar cotización'
+        carga_icon  = '<i class="mdi mdi-pencil"></i>'     if is_cotizada else '<i class="mdi mdi-upload"></i>'
+        carga_cls   = ' disabled' if is_locked   else ''
+
+        # Clase para el botón de rechazar
+        rechazar_cls = ' disabled' if is_locked else ''
+
+        # Construcción del HTML de acciones
+        actions_html = f'''
+        <div class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-info dropdown-toggle"
+                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Acciones
+        </button>
+        <div class="dropdown-menu">
+            <!-- Ver PDF -->
+            <a class="dropdown-item" href="{ reverse('generate_rfq_pdf', args=[quote.id]) }" target="_blank">
+            <i class="mdi mdi-eye"></i> Ver
+            </a>
+            <!-- Cargar / Actualizar Cotización -->
+            <a class="dropdown-item{ carga_cls }" 
+            href="javascript:void(0);"
+            data-bs-toggle="modal"
+            data-bs-target="#loadQuoteModal"
+            data-quote-id="{ quote.id }"
+            {'tabindex="-1" aria-disabled="true"' if is_locked else ''}>
+            { carga_icon } { carga_label }
+            </a>
+            <!-- Rechazar -->
+            <a class="dropdown-item{ rechazar_cls }"
+            href="javascript:void(0);"
+            onClick="reject_request({ quote.id });"
+            {'tabindex="-1" aria-disabled="true"' if is_locked else ''}>
+            <i class="mdi mdi-delete"></i> Rechazar
+            </a>
+        </div>
+        </div>
+        '''.strip()
+
+        data.append({
+            'id':            str(quote.id),
+            'supplier':      str(quote.supplier),
+            'user':          str(quote.user),
+            'company':       str(quote.company),
+            'notes':         str(quote.notes),
+            'status':        status_map.get(quote.status, quote.status),
+            'created_at':    str(quote.created_at),
+            'lines':         str(int(quote.total_items or 0)),
+            'qty_requested': str(int(quote.total_quantity or 0)),
+            'price_total':   str(quote.total_price),
+            'actions':       actions_html,
+        })
 
     return JsonResponse({'data': data})
-
 
 @login_required
 def generate_rfq_pdf(request, id):
@@ -681,22 +723,56 @@ def upload_quote(request):
             quote_request.status = 'EN REVISION'
 
 def load_quote(request, quote_request_id):
-    if request.method == 'POST':
-        quote_request_id = request.POST.get('quote_request_id')
-        quote_file = request.FILES.get('quote_file')
-
-        if not quote_file:
-            return JsonResponse({'status': 'error', 'message': 'No se ha enviado un archivo.'})
-
-        # Guardar el archivo en la solicitud de cotización
-        quote_request = get_object_or_404(SupplierQuoteRequest, id=quote_request_id)
-        quote_request.quote_file = quote_file
-        quote_request.status = 'EN REVISION'
-        quote_request.save()
-
-        return JsonResponse({'status': 'success', 'message': 'Cotización cargada exitosamente.'})
-    
-    # Si no es una solicitud POST, entonces vanmos a retornar el formulario form = SupplierQuoteForm aprovechando que nos llego el id de la solicitud
+    """ Vista para cargar una cotización a una solicitud existente.
+    Permite al proveedor subir un archivo de cotización y actualizar el estado de la solicitud. 
+    """
+    # 1) Recuperas la solicitud padre
     quote_request = get_object_or_404(SupplierQuoteRequest, id=quote_request_id)
-    form = SupplierQuoteForm(instance=quote_request)
+    
+    # 2) Obtienes o creas la cotización asociada
+    #    Así la primera vez se crea, y luego cada POST sigue editándola
+    quote, created = SupplierQuote.objects.get_or_create(quote_request=quote_request, defaults={'supplier': quote_request.supplier})
+
+    if request.method == 'POST':
+        # 3) Ligamos el formulario a la instancia de SupplierQuote
+        form = SupplierQuoteForm(request.POST, request.FILES, instance=quote)
+
+        if form.is_valid():
+            # 4) Guardas sin commit para añadir campos extra
+            quote = form.save(commit=False)
+            quote.status = 'ENVIADA'          # o 'EN REVISION' si ese es tu flujo
+            # Si tienes requisition_id en tu modelo, así lo asignas:
+            quote.requisition_id = request.POST.get('requisition_id')  
+            quote.save()                     # aquí ya guarda archivos y todo
+
+            # 2) Actualizamos la solicitud padre
+            quote_request.status = 'COTIZADA'
+            # El campo viewed_at se actualiza al momento de cargar la cotización
+            quote_request.updated_at = timezone.now()
+            quote_request.save(update_fields=['status', 'updated_at'])
+
+            # 3) Enviamos mail a los administradores
+            subject = f"RFQ #{quote_request.id} COTIZADA por {quote_request.supplier.company_name}"
+            message = (
+                f"Se ha recibido una cotización para la solicitud RFQ {quote_request.id}.\n\n"
+                f"• Proveedor: {quote_request.supplier.company_name}\n"
+                f"• Número de cotización: {quote.quote_number}\n"
+                f"• Fecha de validez: {quote.validity_date}\n"
+                f"• Total: {quote.total} {quote.currency}\n\n"
+                f"Revisa el detalle en el sistema."
+            )
+            # Esto usará la lista ADMINS configurada en settings.py
+            mail_admins(subject, message)
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Cotización cargada exitosamente.'
+            })
+        else:
+            # 5) En caso de error, devuelves el HTML del fragmento con status 400
+            html = render(request, 'supplier/modals/load_quote_form.html', {'form': form}).content.decode('utf-8')
+            return HttpResponseBadRequest(html)
+
+    # Si es GET, devolvemos el form vacío (ligado a la instancia) para que lo cargue el AJAX de JS
+    form = SupplierQuoteForm(instance=quote)
     return render(request, 'supplier/modals/load_quote_form.html', {'form': form})

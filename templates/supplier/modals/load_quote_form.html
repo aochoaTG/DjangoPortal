@@ -1,8 +1,9 @@
 {% load crispy_forms_tags %}
 {% load i18n %}
-{% load widget_tweaks %}
 
-
-{% csrf_token %}
-{% crispy form %}
-<input type="hidden" name="quote_id" value="{{ form.instance.id }}">
+<form id="loadQuoteFormInner" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {# Suponiendo que el form tiene un campo quote_file en SupplierQuoteForm #}
+    {% crispy form %}
+    <input type="hidden" name="quote_id" value="{{ form.instance.id }}">
+</form>

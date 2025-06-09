@@ -1,4 +1,8 @@
-{% extends 'layouts/base_supplier.html' %}{% block page_title %} Solicitudes de cotización {% endblock %}{% block title %}Solicitudes de cotización{% endblock %}
+{# Template padre (por ejemplo, supplier/quotes_list.html) #}
+{% extends 'layouts/base_supplier.html' %}
+{% block page_title %} Solicitudes de cotización {% endblock %}
+{% block title %}Solicitudes de cotización{% endblock %}
+
 {% load static %}
 {% load crispy_forms_tags %}
 {% load i18n %}
@@ -8,65 +12,10 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>
-                    <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#quotes_table', 10)">10</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#quotes_table', 25)">25</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#quotes_table', 50)">50</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#quotes_table', 100)">100</a></li>
-                        </ul>
-                    </div>
-                    <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#quotes_table')"><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
-                    <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#quotes_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
-                    <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#quotes_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
-
-                </div>
-                </span>
-                <div class="d-flex align-items-center">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
-                        <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#quotes_table">
-                    </div>
-                </div>
-            </div>
-
+            {# --- Tu tabla con botones y filtros ... --- #}
             <div class="card-body table-responsive border">
                 <table id="quotes_table" class="table table-sm table-striped table-bordered" style="width:100%;">
-                    <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Proveedor</th>
-                        <th scope="col">Requisitor</th>
-                        <th scope="col">Compañia</th>
-                        <th scope="col">Notas</th>
-                        <th scope="col">Estatus</th>
-                        <th scope="col">Fecha Creación</th>
-                        <th scope="col">Cant. Partidas</th>
-                        <th scope="col">Cant. Solicitada</th>
-                        <th scope="col">Precio Total</th>
-                        <th scope="col">Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody></tbody>
-                    <tfoot>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Proveedor</th>
-                        <th scope="col">Requisitor</th>
-                        <th scope="col">Compañia</th>
-                        <th scope="col">Notas</th>
-                        <th scope="col">Estatus</th>
-                        <th scope="col">Fecha Creación</th>
-                        <th scope="col">Cant. Partidas</th>
-                        <th scope="col">Cant. Solicitada</th>
-                        <th scope="col">Precio Total</th>
-                        <th scope="col">Acciones</th>
-                    </tr>
-                    </tfoot>
+                    {# ... cabecera, cuerpo vacío, pie de tabla ... #}
                 </table>
             </div>
         </div>
@@ -78,11 +27,14 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="loadQuoteModalLabel">Cargar cotización</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="loadQuoteModalLabel">Cargar cotización</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <form method="post" enctype="multipart/form-data" id="loadQuoteForm">
-                <div class="modal-body" id="loadQuoteModalBody"></div>
+            {# Formulario padre; nótese que action se asigna dinámicamente en JS #}
+            <form id="loadQuoteForm" method="post" enctype="multipart/form-data">
+                <div class="modal-body" id="loadQuoteModalBody">
+                    {# Aquí se inyectará el HTML de load_quote_form.html #}
+                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Cotización</button>
@@ -92,27 +44,68 @@
     </div>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script src="{% static 'js/quote_requests.js' %}"></script>
 <script>
-    // Aqui vamos a agregar el quote-id al modal
     $(document).ready(function() {
+        // 1) Al momento de abrir el modal, cargamos el formulario vía AJAX
         $('#loadQuoteModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Botón que activó el modal
-            var quoteId = button.data('quote-id'); // Extrae el ID de la cotización del botón
+            var button = $(event.relatedTarget);
+            var quoteId = button.data('quote-id'); 
             var modal = $(this);
-            modal.find('.modal-body input[name="quote_id"]').val(quoteId); // Asigna el ID al campo oculto del formulario
 
-            // Ahora vamos a cargar el contenido del formulario #loadQuoteForm por medio de AJAX
+            // 1.a) Asignamos la URL de acción al <form id="loadQuoteForm">
+            var actionUrl = `/suppliers/load_quote/${quoteId}/`;
+            modal.find('#loadQuoteForm').attr('action', actionUrl);
+
+            // 1.b) Limpiamos cualquier contenido previo en el modal-body
+            modal.find('#loadQuoteModalBody').html('');
+
+            // 1.c) Hacemos GET para obtener el HTML del formulario
             $.ajax({
-                url: `/suppliers/load_quote/${quoteId}/`,
+                url: actionUrl,
                 method: 'GET',
-                data: {
-                    quote_id: quoteId
-                },
                 success: function(data) {
-                    // Cargar los datos en el formulario
+                    // Inyectamos el HTML del formulario dentro del modal-body
                     modal.find('#loadQuoteModalBody').html(data);
+                },
+                error: function(xhr, status, error) {
+                    // Opcional: mostrar mensaje si falla la carga inicial
+                    modal.find('#loadQuoteModalBody').html(
+                        '<div class="alert alert-danger">Error al cargar el formulario.</div>'
+                    );
+                }
+            });
+        });
+
+        // 2) Interceptamos el submit del <form id="loadQuoteForm">
+        $('#loadQuoteForm').on('submit', function(e) {
+            e.preventDefault(); // Evitamos recarga de página
+
+            var formEl = $(this)[0]; // el elemento DOM <form>
+            var formData = new FormData(formEl);
+            var actionUrl = $(this).attr('action');
+
+            $.ajax({
+                url: actionUrl,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    // Si entra aquí, devolvió Json con {'status': 'success', ...}
+                    $('#loadQuoteModal').modal('hide');
+                    // Aquí puedes mostrar un toast o alert con response.message
+                    // Luego recargas tu tabla, por ejemplo:
+                    refreshTable('#quotes_table');
+                },
+                error: function(xhr) {
+                    // Si entra aquí, la vista devolvió HttpResponseBadRequest(html)
+                    // El cuerpo (xhr.responseText) contiene el HTML del formulario con errores
+                    var htmlConErrores = xhr.responseText;
+                    // Reemplazamos el contenido del modal-body con el HTML devuelto
+                    $('#loadQuoteModalBody').html(htmlConErrores);
                 }
             });
         });
