@@ -19,8 +19,7 @@ urlpatterns = [
 
     path('request_quote', request_quote, name='request_quote'),
     path('quote_requests', quote_requests, name='quote_requests'),
-    path('delete_quote_request/<int:id>/',
-         delete_quote_request, name='delete_quote_request'),
+    path('delete_rfq/<int:id>/', delete_rfq, name='delete_rfq'),
 
     path('notices/', notices, name='notices'),
     path('notices_table/', notices_table, name='notices_table'),
@@ -42,6 +41,8 @@ urlpatterns = [
          name='purchase_orders_table'),
 
     path('quote_requests_table/', quote_requests_table, name='quote_requests_table'),
+
+    path('admin_quote_requests_table/', admin_quote_requests_table, name='admin_quote_requests_table'),
     path('quotes_table/', quotes_table, name='quotes_table'),
     path('rfq/<int:pk>/edit/', edit_quote_request, name='edit_quote_request'),
 

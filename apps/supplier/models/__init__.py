@@ -8,3 +8,4 @@ from .noticeseen import NoticeSeen
 from .reqreqmat import ReqReqMat
 from .reqreqmatdet import ReqReqMatDet
 from .supplierdocument import SupplierDocument, DocumentType
+from .requestforquote import RFQ

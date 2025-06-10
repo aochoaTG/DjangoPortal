@@ -1,11 +1,20 @@
 from django.db import models
 from django.contrib.auth.models import User
 from .supplier import Supplier
+# Vamos a importar el modelo RFQ desde su ubicación
+from .requestforquote import RFQ
 
 class SupplierQuoteRequest(models.Model):
     id = models.AutoField(
         primary_key=True,
         help_text="Identificador único para cada solicitud de cotización"
+    )
+    rfq = models.ForeignKey(
+        RFQ,
+        on_delete=models.CASCADE,
+        related_name='quotes',
+        verbose_name='RFQ asociada',
+        help_text='Solicitud de cotización (cabecera) a la que pertenece este registro',
     )
     supplier = models.ForeignKey(
         Supplier,

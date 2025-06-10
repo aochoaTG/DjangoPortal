@@ -1,0 +1,105 @@
+{% extends 'layouts/base_admin.html' %}{% block page_title %} Solicitudes de cotización {% endblock %}{% block title %}Solicitudes de cotización{% endblock %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Small button group">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Entradas</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#admin_quote_requests_table', 10)">10</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#admin_quote_requests_table', 25)">25</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#admin_quote_requests_table', 50)">50</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTableLength('#admin_quote_requests_table', 100)">100</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="ms-1 btn btn-success text-light" onclick="exportExcel('#admin_quote_requests_table')"><i class="mdi mdi-file-excel-box" data-bs-toggle="tooltip" title="Exportar a Excel"></i> Excel</button>
+                    <button type="button" class="ms-1 btn btn-warning" onclick="copyTable('#admin_quote_requests_table')"><i class="mdi mdi-content-copy" data-bs-toggle="tooltip" title="Copiar al portapapeles"></i> Copiar</button>
+                    <button type="button" class="ms-1 btn btn-primary" onclick="refreshTable('#admin_quote_requests_table')"><i class="mdi mdi-reload" data-bs-toggle="tooltip" title="Recargar tabla"></i> Recargar tabla</button>
+                    <a href="{% url 'addQuoteModal' %}" type="button" class="ms-1 btn btn-secondary"><i class="mdi mdi-plus" data-bs-toggle="tooltip" title="Agregar"></i> Agregar</a>
+                </div>
+                </span>
+                <div class="d-flex align-items-center">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text" id="inputGroup-sizing-sm"><i class="mdi mdi-magnify"></i></span>
+                        <input type="text" class="form-control" id="customSearch" placeholder="Buscar en la tabla" data-table-id="#admin_quote_requests_table">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body table-responsive border">
+                <table id="admin_quote_requests_table" class="table table-sm table-striped table-bordered" style="width:100%;">
+                    <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th>Productos</th>
+                        <th>Proveedores</th>
+                        <th>Estatus</th>
+                        <th>Notas</th>
+                        <th>Creado el</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th>Productos</th>
+                        <th>Proveedores</th>
+                        <th>Estatus</th>
+                        <th>Notas</th>
+                        <th>Creado el</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addQuoteModal" tabindex="-1" aria-labelledby="addQuoteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body" id="addQuoteModalContent">
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/quote_requests.js' %}"></script>
+<script>
+    $(document).ready(function() {
+        let admin_quote_requests_table = $('#admin_quote_requests_table').DataTable({
+            colReorder: true,
+            pageLength: 25,
+            dom: 'tip', // Muestra la tabla (t), la información (i), y la paginación (p)
+            paging: true, // Si quieres mantener la paginación
+            info: true, // Si quieres mostrar la información de "Mostrando X a Y de Z entradas"
+            buttons: ['copy', 'excel'], // Si quieres mostrar los botones de copiar, excel y pdf
+            orderCellsTop: true, // Hace que solo la primera fila del thead controle el ordenamiento
+            fixedHeader: true,   // Mantiene los filtros visibles cuando haces scroll
+            ajax: {
+                "url": "/suppliers/admin_quote_requests_table/"
+            },
+            columns: [
+                { "data": "id" },
+                { "data": "products" },
+                { "data": "suppliers" },
+                { "data": "status" },
+                { "data": "notes" },
+                { "data": "created_at" },
+                { "data": "actions" },
+            ],
+            initComplete: function () {
+                addDataTableFilter('admin_quote_requests_table');
+            }
+        });
+    });
+</script>
+{% endblock %}
