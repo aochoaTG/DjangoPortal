@@ -44,12 +44,11 @@ urlpatterns = [
 
     path('admin_quote_requests_table/', admin_quote_requests_table, name='admin_quote_requests_table'),
     path('quotes_table/', quotes_table, name='quotes_table'),
-    path('rfq/<int:pk>/edit/', edit_quote_request, name='edit_quote_request'),
+    path('rfq/<int:rfq>/edit/', edit_quote_request, name='edit_quote_request'),
 
-    path('generate_rfq_pdf/<int:id>/', generate_rfq_pdf, name='generate_rfq_pdf'),  #
+    path('generate_rfq_pdf/<int:id>/', generate_rfq_pdf, name='generate_rfq_pdf'),
+    path('generate_rfq_supplier_pdf/<int:id>/', generate_rfq_supplier_pdf, name='generate_rfq_supplier_pdf'),
 
-
-     
     path('supplier_rfq/', supplier_rfq, name='supplier_rfq'),
     path('quotes/', quotes, name='quotes'),
 

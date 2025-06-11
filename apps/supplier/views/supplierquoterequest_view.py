@@ -111,19 +111,6 @@ def request_quote(request):
                 quote_request = SupplierQuoteRequest.objects.get(
                     id=quote_request_id)
 
-                # Assuming the supplier has a user associated with it
-                # Notification.objects.create(
-                #     user=quote_request.supplier.user,  # Make sure your Supplier model has a user field
-                #     supplier=quote_request.supplier,
-                #     title="Nueva Solicitud de Cotización",
-                #     description="Has recibido una nueva solicitud de cotización.",
-                #     link=f"/quote-requests/{quote_request.id}/",
-                #     notification_type="info",
-                #     priority=10,
-                #     expires_at=timezone.now() + timezone.timedelta(days=7),
-                #     action_text="Ver Solicitud"
-                # )
-
         if any(count > 0 for count in items_created.values()):
             messages.success(
                 request, "Solicitudes de cotización creadas exitosamente.")
@@ -181,14 +168,13 @@ def quote_requests_table(request):
 
     for quote in quote_requests:
         # Botón "Ver" siempre está disponible
-        acciones = f'''
-            <a class="dropdown-item" href="{reverse('generate_rfq_pdf', args=[quote.id])}" target="_blank"><i class="mdi mdi-eye"></i> Ver solicitud</a>
-        '''
+        acciones = ''
 
         # Si el usuario es staff, permitir también "Editar" y "Eliminar"
         if request.user.is_staff:
             acciones += f'''
-                <a class="dropdown-item" href="{reverse('edit_quote_request', args=[quote.id])}"><i class="mdi mdi-pencil"></i> Editar</a>
+                <a class="dropdown-item" href="{reverse('generate_rfq_pdf', args=[quote.id])}" target="_blank"><i class="mdi mdi-eye"></i> Ver solicitud</a>
+                <a class="dropdown-item" href="{reverse('edit_quote_request', args=[quote.rfq])}"><i class="mdi mdi-pencil"></i> Editar</a>
                 <form method="POST" action="{reverse('delete_rfq', args=[quote.id])}" class="dropdown-item">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">
                     <button type="submit" class="btn btn-link text-danger p-0 m-0" style="border: none; background: none;">Eliminar</button>
@@ -197,6 +183,7 @@ def quote_requests_table(request):
         else:
             # Si el usuario no es staff, permitir "Cargar cotización" y "Rechazar"
             acciones += f'''
+                <a class="dropdown-item" href="{reverse('generate_rfq_supplier_pdf', args=[quote.id])}" target="_blank"><i class="mdi mdi-eye"></i> Ver solicitud</a>
                 <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#loadQuoteModal"><i class="mdi mdi-upload"></i> Cotizar</a>
                 <a class="dropdown-item" href="javascript:void(0);" onClick="reject_request({quote.id});"><i class="mdi mdi-delete"></i> Rechazar</a>
             '''
@@ -242,7 +229,37 @@ def admin_quote_requests_table(request):
         quote_requests = rfq.quotes.all()
 
         # Lista de proveedores (usando el __str__ de Supplier)
-        suppliers = [str(q.supplier) for q in quote_requests]
+        suppliers_html_list = []
+
+        status_colors = {
+            'PENDIENTE': 'bg-warning text-dark',
+            'VISTA': 'bg-primary',
+            'EN REVISION': 'bg-info',
+            'COTIZADA': 'bg-success',
+            'ACEPTADA': 'bg-success',
+            'RECHAZADA': 'bg-danger',
+            'EXPIRADA': 'bg-danger',
+        }
+        blocks = []
+        for q in quote_requests:
+            status = getattr(q, 'status', '')  # o q.status si estás seguro
+            rfc = getattr(q.supplier, 'rfc', '') if q.supplier else ''  # suponiendo que supplier está relacionado
+            nombre = getattr(q.supplier, 'nombre', '') if q.supplier else ''
+
+            color = status_colors.get(status, 'bg-secondary')
+            block_html = f'''
+            <div class="text-center flex-fill mx-1">
+                <h5 class="mb-1" title="{nombre}">{rfc}</h5>
+                <span class="badge {color} p-2 d-block">{status}</span>
+            </div>
+            '''
+            blocks.append(block_html)
+
+        final_html = f'''
+        <div class="d-flex justify-content-between align-items-center">
+            {''.join(blocks)}
+        </div>
+        '''
 
         # Lista de productos: recorro cada cotización y sus ítems
         products = []
@@ -289,25 +306,35 @@ def admin_quote_requests_table(request):
             </div>
         </div>
         '''
+        unique_products = list(set(products))
+        unique_products.sort()
+        products_html = ''.join([f'<p class="m-0 p-0 text-nowrap">{p}</p>' for p in unique_products]) if unique_products else '<p class="m-0 p-0">Ninguno</p>'
 
         # Construyo la fila JSON
         data.append({
             'id': str(rfq.id),
-            'suppliers': ", ".join(suppliers) or '—',
-            'products':  ", ".join(products)  or '—',
+            'products': products_html,
+            'suppliers': final_html,
+            'status': rfq.id,
+            'notes': rfq.id or '',
             'created_at': rfq.created_at.strftime("%Y-%m-%d"),
-            'actions':   actions_html,
+            'actions': actions_html,
         })
 
     return JsonResponse({'data': data})
 
 
 @login_required
-def edit_quote_request(request, pk):
-    quote_request = get_object_or_404(SupplierQuoteRequest, pk=pk)
-
+def edit_quote_request(request, rfq):
+    """ Permite editar una solicitud de cotización existente. """
     if not request.user.is_staff:
         return HttpResponse("No tienes permiso para editar esta solicitud.")
+
+    # Obtener los registros que pertenecen a este rfq
+    quote_requests = SupplierQuoteRequest.objects.filter(rfq=rfq)
+
+    # Ok, ahora vamos a tomar el primer registro de la lista
+    quote_request = quote_requests.first()
 
     ItemFormSet = modelformset_factory(
         SupplierQuoteRequestItem,
@@ -680,7 +707,180 @@ def generate_rfq_pdf(request, id):
     response["Content-Disposition"] = 'inline; filename="output.pdf"'
     return response
 
+@login_required
+def generate_rfq_supplier_pdf(request, id):
+    """
+    Genera un PDF de Solicitud de Cotización (RFQ) para un proveedor,
+    utilizando una plantilla base y agregando datos dinámicamente.
+    """
 
+    # 📌 1️⃣ Cargar la plantilla base del PDF
+    template_path = os.path.join(settings.BASE_DIR, "static/pdf/RFQ.pdf")
+    pdf_reader = PdfReader(template_path)  # Lee el PDF base
+
+    # 📌 2️⃣ Obtener los datos necesarios para la cotización
+    quote_request = get_object_or_404(
+        SupplierQuoteRequest, id=id)  # Cotización
+    # Cambiamos el status de la solicitud a Visto
+    quote_request.status = 'VISTA'
+    quote_request.viewed_at = timezone.now()
+    quote_request.save(
+        update_fields=['status', 'viewed_at']
+    )
+
+    company_data = sql_scripts.get_company_data(request, quote_request.company)  # Datos de la empresa
+    supplier_data = Supplier.objects.filter(user=quote_request.supplier.user)  # Datos del proveedor
+
+    # 📌 3️⃣ Crear un buffer para el PDF generado
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)  # Se crea un lienzo PDF
+
+    # 📌 4️⃣ Agregar información en el PDF (Fecha, título y empresa)
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(
+        250, 750, f"Fecha de emisión: {quote_request.created_at.strftime('%Y/%m/%d')}")
+
+    p.setFont("Helvetica-Bold", 18)
+    p.setFillColorRGB(150, 150, 150)  # Color gris
+    p.drawString(50, 700, "SOLICITUD DE COTIZACIÓN")
+
+    # 📌 5️⃣ Agregar los datos de la empresa solicitante
+    p.setFont("Helvetica", 10)
+    p.setFillColorRGB(0, 0, 0)
+    p.drawString(
+        50, 650, f"{company_data[0]['Nombre'].title()} - {company_data[0]['rfc']}")
+    p.drawString(
+        50, 630, f"{company_data[0]['CalleLower'].title()}, {company_data[0]['ColoniaLower'].title()}")
+    p.drawString(
+        50, 610, f"{company_data[0]['CiudadLower'].title()}, {company_data[0]['EstadoLower'].title()}, C.P. {company_data[0]['CP']}")
+
+    # 📌 6️⃣ Agregar información de la solicitud de cotización
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(400, 650, "Folio:")
+    p.setFont("Helvetica", 10)
+    p.drawString(480, 650, f"RFQ-{quote_request.id}")
+
+    # Fecha límite de respuesta
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(400, 630, "Fecha límite:")
+    p.setFont("Helvetica", 10)
+    p.drawString(
+        480, 630, f"{(quote_request.created_at + timedelta(days=15)).strftime('%Y/%m/%d')}")
+
+    # Teléfono de contacto
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(400, 610, "Teléfono:")
+    p.setFont("Helvetica", 10)
+    if company_data and 'Tel1' in company_data[0]:
+        p.drawString(480, 610, f"{company_data[0]['Tel1']}")
+    else:
+        p.drawString(480, 610, "Teléfono no disponible")
+
+    # 📌 7️⃣ Agregar mensaje al proveedor
+    p.setFont("Helvetica-Bold", 11)
+    p.setFillColorRGB(0, 0, 0)
+    if supplier_data:
+        p.drawString(50, 570, f"Estimado {supplier_data[0].company_name},")
+    else:
+        p.drawString(50, 570, "Estimado proveedor,")
+
+    p.setFont("Helvetica", 10)
+    p.drawString(
+        50, 550, "Actualmente estamos en el proceso de búsqueda de cotizaciones. Nos gustaría conocer más sobre los productos")
+    p.drawString(
+        50, 530, "y servicios que su empresa ofrece, por lo que le solicitamos amablemente una cotización detallada para los")
+    p.drawString(50, 510, "siguientes artículos/servicios:")
+
+    # 📌 8️⃣ Crear una tabla con los ítems de la solicitud
+    styles = getSampleStyleSheet()
+    data = [['ID', 'Descripción Producto/Servicio', 'Cantidad', 'UdM', 'Moneda']]
+
+    # Vamos a agregar un ciclo for de 9 elementos
+    for i in range(9):
+        try:
+            item = quote_request.items.all()[i]
+            data.append([
+                item.requisition_id,
+                item.description,
+                item.quantity,
+                item.unit_of_measurement,
+                item.currency
+            ])
+        except IndexError:
+            data.append(['--', '--', '--', '--', '--'])
+
+    # Aqui agregar una validacion, de que si son mas de 9 elementos, se agregue una nueva pagina
+    # 📌 9️⃣ Configurar la tabla con estilos
+    t = Table(data, colWidths=[40, 275, 65, 65, 65])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2B57A4')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+        ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+        ('ALIGN', (2, 0), (-1, -1), 'CENTER'),
+        ('TOPPADDING', (0, 1), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        # ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#2B57A4')),
+        # Vamos a poner solo el borde inferior de cada fila
+        ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor('#2B57A4')),
+        ('WORDWRAP', (0, 0), (-1, -1), True),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+
+    # 📌 🔟 Ajustar la posición de la tabla
+    table_width, table_height = t.wrap(500, 500)
+    x_position = 50
+    y_position = 500
+    new_y_position = y_position - table_height  # Evitar que cubra texto anterior
+
+    # Dibujar la tabla
+    t.drawOn(p, x_position, new_y_position)
+
+    p.setFont("Helvetica", 7)
+    # 📌 1️⃣5️⃣ Dibujar segundo recuadro (DERECHA)
+    # Vamos a rellener el rectangulo de amarillo
+    p.setFillColorRGB(169, 202, 72)
+    p.rect(320, 40, 240, 70, fill=1)  # Segundo recuadro
+
+    # Texto del segundo recuadro
+    text2 = """Evaluaremos las propuestas en función del precio, la calidad y la capacidad de su empresa para 
+    satisfacer nuestras necesidades específicas. Si requiere información adicional, contactenos.
+    """
+
+    # Crear el párrafo con ajuste automático
+    paragraph2 = Paragraph(text2, styles["Normal"])
+    # Se ajusta dentro del recuadro (ancho=230, alto=65)
+    paragraph2.wrapOn(p, 230, 65)
+    paragraph2.drawOn(p, 325, 50)  # Posición dentro del recuadro
+
+    # 📌 1️⃣1️⃣ Finalizar y guardar el PDF
+    p.showPage()
+    p.save()
+
+    # 📌 1️⃣2️⃣ Combinar la plantilla con el nuevo contenido
+    buffer.seek(0)
+    overlay_pdf = PdfReader(buffer)
+    output_pdf = PdfWriter()
+
+    for page_number in range(len(pdf_reader.pages)):
+        page = pdf_reader.pages[page_number]
+        if page_number == 0:  # Solo modificar la primera página
+            page.merge_page(overlay_pdf.pages[0])
+        output_pdf.add_page(page)
+
+    # 📌 1️⃣3️⃣ Retornar el PDF como respuesta HTTP
+    output_buffer = io.BytesIO()
+    output_pdf.write(output_buffer)
+    output_buffer.seek(0)
+
+    response = HttpResponse(output_buffer, content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="output.pdf"'
+    return response
 
 @login_required
 def addQuoteModal(request):
