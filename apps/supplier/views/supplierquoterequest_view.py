@@ -240,11 +240,55 @@ def admin_quote_requests_table(request):
             'RECHAZADA': 'bg-danger',
             'EXPIRADA': 'bg-danger',
         }
+
+        # Variables para evaluar estado general
+        total_quotes = quote_requests.count()
+        responded_quotes = quote_requests.exclude(status='PENDIENTE').count()
+        accepted_quotes = quote_requests.filter(status='ACEPTADA').count()
+        rejected_quotes = quote_requests.filter(status='RECHAZADA').count()
+
+        # Diccionario con colores de texto e íconos, sin badge ni fondo
+        status_general_styles = {
+            'PENDIENTE': ('', '⏳'),
+            'EN LICITACION': ('text-info', '⚖️'),
+            'ADJUDICADA': ('text-success', '✅'),
+            'RECHAZADA': ('text-danger', '❌'),
+        }
+
+        # Comentarios para cada status general
+        status_general_comments = {
+            'PENDIENTE': 'Faltan respuestas de algunos proveedores.',
+            'EN LICITACION': 'Todas las cotizaciones recibidas están en evaluación.',
+            'ADJUDICADA': 'Se ha seleccionado al proveedor ganador.',
+            'RECHAZADA': 'Todos los proveedores rechazaron la solicitud.',
+        }
+
+        # Lógica para status_general
+        if responded_quotes < total_quotes:
+            status_general = 'PENDIENTE'  # Faltan respuestas
+        elif accepted_quotes > 0:
+            status_general = 'ADJUDICADA'  # Al menos un proveedor aceptó
+        elif rejected_quotes == total_quotes:
+            status_general = 'RECHAZADA'  # Todos rechazaron
+        else:
+            status_general = 'EN LICITACION'  # Todos respondieron pero sin aceptación aún
+
+
+        # Recorro las cotizaciones y genero el HTML de los bloques
         blocks = []
         for q in quote_requests:
-            status = getattr(q, 'status', '')  # o q.status si estás seguro
-            rfc = getattr(q.supplier, 'rfc', '') if q.supplier else ''  # suponiendo que supplier está relacionado
-            nombre = getattr(q.supplier, 'nombre', '') if q.supplier else ''
+            color_class, icon = status_general_styles.get(status_general, ('text-secondary', '❓'))
+            comment = status_general_comments.get(status_general, '')
+            status_general_html = f'''
+            <p class="text-nowrap fw-bold {color_class} m-0 pb-1">
+                {icon} {status_general}
+            </p>
+            <small class="{color_class}">{comment}</small>
+            '''
+            # Genero el HTML para cada bloque de proveedor
+            status = q.status  # o q.status si estás seguro
+            rfc = q.supplier.rfc if q.supplier else ''  # suponiendo que supplier está relacionado
+            nombre = q.supplier.company_name if q.supplier else ''
 
             color = status_colors.get(status, 'bg-secondary')
             block_html = f'''
@@ -254,6 +298,12 @@ def admin_quote_requests_table(request):
             </div>
             '''
             blocks.append(block_html)
+
+            # Tambien debemos evaluar lo siguiente: Mostrar un estado general para la solicitud, por ejemplo:
+            # Pendiente (faltan respuestas)
+            # Completa (todos respondieron)
+            # En licitación (se está evaluando)
+            # Adjudicada (ya se seleccionó proveedor)
 
         final_html = f'''
         <div class="d-flex justify-content-between align-items-center">
@@ -315,7 +365,7 @@ def admin_quote_requests_table(request):
             'id': str(rfq.id),
             'products': products_html,
             'suppliers': final_html,
-            'status': rfq.id,
+            'status': status_general_html,
             'notes': rfq.id or '',
             'created_at': rfq.created_at.strftime("%Y-%m-%d"),
             'actions': actions_html,
@@ -505,25 +555,11 @@ def quotes_table(request):
         </button>
         <div class="dropdown-menu">
             <!-- Ver PDF -->
-            <a class="dropdown-item" href="{ reverse('generate_rfq_pdf', args=[quote.id]) }" target="_blank">
-            <i class="mdi mdi-eye"></i> Ver
-            </a>
+            <a class="dropdown-item" href="{ reverse('generate_rfq_supplier_pdf', args=[quote.id]) }" target="_blank"><i class="mdi mdi-eye"></i> Ver</a>
             <!-- Cargar / Actualizar Cotización -->
-            <a class="dropdown-item{ carga_cls }" 
-            href="javascript:void(0);"
-            data-bs-toggle="modal"
-            data-bs-target="#loadQuoteModal"
-            data-quote-id="{ quote.id }"
-            {'tabindex="-1" aria-disabled="true"' if is_locked else ''}>
-            { carga_icon } { carga_label }
-            </a>
+            <a class="dropdown-item{ carga_cls }" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#loadQuoteModal" data-quote-id="{ quote.id }" {'tabindex="-1" aria-disabled="true"' if is_locked else ''}>{ carga_icon } { carga_label }</a>
             <!-- Rechazar -->
-            <a class="dropdown-item{ rechazar_cls }"
-            href="javascript:void(0);"
-            onClick="reject_request({ quote.id });"
-            {'tabindex="-1" aria-disabled="true"' if is_locked else ''}>
-            <i class="mdi mdi-delete"></i> Rechazar
-            </a>
+            <a class="dropdown-item{ rechazar_cls }" href="javascript:void(0);" onClick="reject_request({ quote.id });" {'tabindex="-1" aria-disabled="true"' if is_locked else ''}><i class="mdi mdi-delete"></i> Rechazar</a>
         </div>
         </div>
         '''.strip()
@@ -543,22 +579,6 @@ def quotes_table(request):
         })
 
     return JsonResponse({'data': data})
-
-import os
-import io
-import copy
-from datetime import timedelta
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.shortcuts import redirect
-from django.contrib import messages
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import Table, TableStyle, Paragraph
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from PyPDF2 import PdfReader, PdfWriter
-from django.utils import timezone
 
 @login_required
 def generate_rfq_pdf(request, id):
@@ -719,15 +739,15 @@ def generate_rfq_supplier_pdf(request, id):
     pdf_reader = PdfReader(template_path)  # Lee el PDF base
 
     # 📌 2️⃣ Obtener los datos necesarios para la cotización
-    quote_request = get_object_or_404(
-        SupplierQuoteRequest, id=id)  # Cotización
-    # Cambiamos el status de la solicitud a Visto
-    quote_request.status = 'VISTA'
-    quote_request.viewed_at = timezone.now()
-    quote_request.save(
-        update_fields=['status', 'viewed_at']
-    )
-
+    quote_request = get_object_or_404(SupplierQuoteRequest, id=id)  # Cotización
+    # Cambiamos el status de la solicitud a Visto solo si el status es PENDIENTE
+    if quote_request.status == 'PENDIENTE' and request.user == quote_request.supplier.user:
+        # Actualizar el estado a VISTA y la fecha de visualización
+        quote_request.status = 'VISTA'
+        quote_request.viewed_at = timezone.now()
+        quote_request.save(update_fields=['status', 'viewed_at'])
+    
+    # Obtenemos los datos de la empresa y del proveedor
     company_data = sql_scripts.get_company_data(request, quote_request.company)  # Datos de la empresa
     supplier_data = Supplier.objects.filter(user=quote_request.supplier.user)  # Datos del proveedor
 
