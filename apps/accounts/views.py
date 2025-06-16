@@ -2,6 +2,7 @@
 import openpyxl
 import mimetypes
 from functools import reduce
+from django.contrib.auth.forms import SetPasswordForm
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.urls import reverse
@@ -24,6 +25,7 @@ from apps.supplier.forms import CatSupplierForm, SupplierDocumentForm
 from apps.supplier.models import CatSupplier, Supplier, SupplierDocument, DocumentType
 from apps.accounts.forms import StaffUserCreationForm, StaffUserEditForm, SupplierUserCreationForm, SupplierUserEditForm, ProfileUpdateForm, CustomSupplierCreationForm, UserForm, SupplierFiscalForm, SupplierBankForm, UserProfileForm
 from apps.accounts.models import Profile
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 
 DOCUMENT_FIELDS = [
@@ -410,9 +412,10 @@ def show_suppliers_table(request):
                     <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Acciones</button>
                     <div class="dropdown-menu">
                     <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#updateSupplierModal" data-id="{supplier.id}"><i class="mdi mdi-lead-pencil"></i> Editar</a>
+                    <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#changePasswordModal" data-id="{supplier.id}"><i class="mdi mdi-key"></i> Reestablecer contraseña</a>
                     <form method="POST" action="/accounts/delete_account/{supplier.id}/" class="dropdown-item">
                         <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                        <button type="submit" class="btn btn-link text-danger p-0 m-0" style="border: none; background: none;">Eliminar</button>
+                        <button type="submit" class="btn btn-link text-danger p-0 m-0" style="border: none; background: none;"><i class="mdi mdi-delete"></i> Eliminar</button>
                     </form>
                     </div>
                 </div>
@@ -990,3 +993,21 @@ def view_document(request, document_id):
         response['Content-Disposition'] = f'attachment; filename="{document.file.name.split("/")[-1]}"'
     
     return response
+
+@ensure_csrf_cookie
+def change_password_form(request, user_id):
+    user = get_object_or_404(User, pk=user_id, is_staff=False)
+    form = SetPasswordForm(user)
+    html = render(request, 'accounts/modals/change_password_form.html', {'form': form, 'user': user}).content.decode()
+    return JsonResponse({'html': html})
+
+@require_POST
+def change_password(request, user_id):
+    user = get_object_or_404(User, pk=user_id, is_staff=False)
+    form = SetPasswordForm(user, request.POST)
+    if form.is_valid():
+        form.save()
+        return JsonResponse({'success': True})
+    else:
+        html = render(request, 'accounts/modals/change_password_form.html', {'form': form, 'user': user}).content.decode()
+        return JsonResponse({'success': False, 'html': html})

@@ -1,0 +1,58 @@
+{% extends 'layouts/base_admin.html' %}{% block page_title %} Solicitudes de cotización {% endblock %}{% block title %}Comparar cotizaciones para RFQ #{{ rfq.id }}{% endblock %}
+{% block extra_css %}
+
+<link href="https://adminlte.io/themes/v3/dist/css/adminlte.min.css?v=3.2.0" rel="stylesheet">
+{% endblock %}
+{% load static %}
+{% block content %}
+
+<div class="row">
+    {% for quote in quotes %}
+    <div class="col-md-4">
+        <!-- Widget: user widget style 1 -->
+        <div class="card card-widget widget-user">
+            <!-- Add the bg color to the header using any of the bg-* classes -->
+            <div class="widget-user-header bg-info">
+                <h3 class="widget-user-username">{{ quote.supplier.company_name }}</h3>
+                <h5 class="widget-user-desc">{{ quote.supplier.rfc }}</h5>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-sm-4 border-right">
+                    <div class="description-block">
+                        <h5 class="description-header">$100.00</h5>
+                        <span class="description-text">Precio final</span>
+                    </div>
+                    <!-- /.description-block -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-sm-4 border-right">
+                    <div class="description-block">
+                        <h5 class="description-header">{{ quote.status }}</h5>
+                        <span class="description-text">Estado</span>
+                    </div>
+                    <!-- /.description-block -->
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-sm-4">
+                    <div class="description-block">
+                        <h5 class="description-header">35</h5>
+                        <span class="description-text">PRODUCTS</span>
+                    </div>
+                    <!-- /.description-block -->
+                    </div>
+                    <!-- /.col -->
+                </div>
+            <!-- /.row -->
+            </div>
+        </div>
+        <!-- /.widget-user -->
+    </div>
+    {% empty %}
+    <h3>No hay cotizaciones disponibles</h3>
+    {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/quote_requests.js' %}"></script>
+{% endblock %}

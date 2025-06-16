@@ -61,11 +61,13 @@ urlpatterns = [
     path('docs_validation_table/', docs_validation_table, name='docs_validation_table'),
     path('<int:supplier_id>/document/<str:doc_code>/approve/', approve_document_view, name='approve_document'),
 
-     path(
-     '<int:supplier_id>/document/<str:doc_code>/reject/',
-     reject_document_view,
-     name='reject_document'
-     ),
+     path('<int:supplier_id>/document/<str:doc_code>/reject/', reject_document_view, name='reject_document'),
 
      path('load_quote/<int:quote_request_id>/', load_quote, name='load_quote'),
+
+     path('select_best_quote/<int:rfq_id>/', select_best_quote, name='select_best_quote'),
+
+     path('compare_quotes/<int:rfq_id>/', compare_quotes, name='compare_quotes'),
+
+     path('adjudicate_quote/<int:quote_id>/', adjudicate_quote, name='adjudicate_quote'),
 ]

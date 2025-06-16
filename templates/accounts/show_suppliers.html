@@ -99,6 +99,16 @@
   </div>
 </div>
 
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body" id="changePasswordModalContent">
+        <!-- Aquí cargaremos el formulario vía AJAX -->
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -121,6 +131,19 @@
             }
         });
     });
+
+    $('#changePasswordModal').on('show.bs.modal', function (event) {
+            let button = $(event.relatedTarget);
+            let userId = button.data('id');
+
+            $.ajax({
+                url: "/accounts/change_password_form/" + userId + "/",
+                method: "GET",
+                success: function(data) {
+                    $('#changePasswordModalContent').html(data.html);
+                }
+            });
+        });
 </script>
 {% endblock %}
 

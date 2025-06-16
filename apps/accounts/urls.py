@@ -44,4 +44,8 @@ urlpatterns = [
     path('supplier/document/<int:document_id>/delete/', views.delete_document, name='delete_document'),
     # Nueva URL para ver el documento
     path('document/<int:document_id>/view/', views.view_document, name='view_document'),
+
+    # Nueva URL para cambio de contraseña
+    path('change_password_form/<int:user_id>/', views.change_password_form, name='change_password_form'),
+    path('change_password/<int:user_id>/', views.change_password, name='change_password'),
 ]

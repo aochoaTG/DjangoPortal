@@ -1,6 +1,8 @@
 """ Vistas para la creación y gestión de solicitudes de cotización. """
 import os
 import io
+from django.views.decorators.http   import require_POST
+from django.views.decorators.csrf   import csrf_exempt
 from django.core.mail               import mail_admins
 from django.urls                    import reverse
 from django.middleware.csrf         import get_token
@@ -216,21 +218,20 @@ def quote_requests_table(request):
 
 @login_required
 def admin_quote_requests_table(request):
+    # Verifica que el usuario sea staff (administrador), si no, niega acceso
     if not request.user.is_staff:
         return HttpResponse("No tienes permiso para ver esta tabla.")
 
-    # Ahora vamos a obtener todos los registros de RFQ
+    # Obtiene todas las solicitudes de cotización ordenadas por fecha de creación
     rfqs = RFQ.objects.all().order_by('created_at')
-
     data = []
 
+    # Recorre cada solicitud de cotización (RFQ)
     for rfq in rfqs:
-        # Obtengo todas las cotizaciones (hijos) de esta RFQ
+        # Obtiene todas las cotizaciones (hijos) relacionadas a esta RFQ
         quote_requests = rfq.quotes.all()
 
-        # Lista de proveedores (usando el __str__ de Supplier)
-        suppliers_html_list = []
-
+        # Diccionario para asignar clases CSS según el estado de cada cotización
         status_colors = {
             'PENDIENTE': 'bg-warning text-dark',
             'VISTA': 'bg-primary',
@@ -241,13 +242,30 @@ def admin_quote_requests_table(request):
             'EXPIRADA': 'bg-danger',
         }
 
-        # Variables para evaluar estado general
+        # Calcula totales para evaluar estado general
         total_quotes = quote_requests.count()
         responded_quotes = quote_requests.exclude(status='PENDIENTE').count()
         accepted_quotes = quote_requests.filter(status='ACEPTADA').count()
         rejected_quotes = quote_requests.filter(status='RECHAZADA').count()
 
-        # Diccionario con colores de texto e íconos, sin badge ni fondo
+        # Determina el estado general de la solicitud basado en los estados individuales
+        if responded_quotes < total_quotes:
+            status_general = 'PENDIENTE'  # Faltan respuestas de proveedores
+        elif accepted_quotes > 0:
+            status_general = 'ADJUDICADA'  # Al menos un proveedor aceptó
+        elif rejected_quotes == total_quotes and total_quotes > 0:
+            status_general = 'RECHAZADA'  # Todos rechazaron la solicitud
+        else:
+            status_general = 'EN LICITACION'  # Todos respondieron, pero no hay aceptación aún
+
+        # Evalúa si todos respondieron y si la solicitud está en evaluación
+        all_responded = (responded_quotes == total_quotes and total_quotes > 0)
+        in_evaluation = (status_general == 'EN LICITACION')
+
+        # El botón "Seleccionar mejor cotización" se activa solo si todos respondieron y está en evaluación
+        can_select_best = all_responded and in_evaluation
+
+        # Diccionario con estilos y símbolos para mostrar el estado general
         status_general_styles = {
             'PENDIENTE': ('', '⏳'),
             'EN LICITACION': ('text-info', '⚖️'),
@@ -255,7 +273,7 @@ def admin_quote_requests_table(request):
             'RECHAZADA': ('text-danger', '❌'),
         }
 
-        # Comentarios para cada status general
+        # Comentarios descriptivos para cada estado general
         status_general_comments = {
             'PENDIENTE': 'Faltan respuestas de algunos proveedores.',
             'EN LICITACION': 'Todas las cotizaciones recibidas están en evaluación.',
@@ -263,104 +281,94 @@ def admin_quote_requests_table(request):
             'RECHAZADA': 'Todos los proveedores rechazaron la solicitud.',
         }
 
-        # Lógica para status_general
-        if responded_quotes < total_quotes:
-            status_general = 'PENDIENTE'  # Faltan respuestas
-        elif accepted_quotes > 0:
-            status_general = 'ADJUDICADA'  # Al menos un proveedor aceptó
-        elif rejected_quotes == total_quotes:
-            status_general = 'RECHAZADA'  # Todos rechazaron
-        else:
-            status_general = 'EN LICITACION'  # Todos respondieron pero sin aceptación aún
+        # Obtiene el estilo y el icono para el estado general actual
+        color_class, icon = status_general_styles.get(status_general, ('text-secondary', '❓'))
+        comment = status_general_comments.get(status_general, '')
 
-
-        # Recorro las cotizaciones y genero el HTML de los bloques
-        blocks = []
-        for q in quote_requests:
-            color_class, icon = status_general_styles.get(status_general, ('text-secondary', '❓'))
-            comment = status_general_comments.get(status_general, '')
-            status_general_html = f'''
+        # Construye el HTML para mostrar el estado general en la tabla
+        status_general_html = f'''
             <p class="text-nowrap fw-bold {color_class} m-0 pb-1">
                 {icon} {status_general}
             </p>
             <small class="{color_class}">{comment}</small>
-            '''
-            # Genero el HTML para cada bloque de proveedor
-            status = q.status  # o q.status si estás seguro
-            rfc = q.supplier.rfc if q.supplier else ''  # suponiendo que supplier está relacionado
-            nombre = q.supplier.company_name if q.supplier else ''
+        '''
 
+        blocks = []
+        # Recorre las cotizaciones para crear bloques visuales por proveedor con su estado
+        for q in quote_requests:
+            status = q.status
+            rfc = q.supplier.rfc if q.supplier else ''
+            nombre = q.supplier.company_name if q.supplier else ''
             color = status_colors.get(status, 'bg-secondary')
             block_html = f'''
-            <div class="text-center flex-fill mx-1">
-                <h5 class="mb-1" title="{nombre}">{rfc}</h5>
-                <span class="badge {color} p-2 d-block">{status}</span>
-            </div>
+                <div class="text-center flex-fill mx-1">
+                    <h5 class="mb-1" title="{nombre}">{rfc}</h5>
+                    <span class="badge {color} p-2 d-block">{status}</span>
+                </div>
             '''
             blocks.append(block_html)
 
-            # Tambien debemos evaluar lo siguiente: Mostrar un estado general para la solicitud, por ejemplo:
-            # Pendiente (faltan respuestas)
-            # Completa (todos respondieron)
-            # En licitación (se está evaluando)
-            # Adjudicada (ya se seleccionó proveedor)
-
+        # Une todos los bloques para la columna de proveedores
         final_html = f'''
-        <div class="d-flex justify-content-between align-items-center">
-            {''.join(blocks)}
-        </div>
+            <div class="d-flex justify-content-between align-items-center">
+                {''.join(blocks)}
+            </div>
         '''
 
-        # Lista de productos: recorro cada cotización y sus ítems
+        # Genera la lista de productos relacionados con la solicitud
         products = []
         for q in quote_requests:
-            for item in q.items.all():           # related_name='items'
+            for item in q.items.all():
                 products.append(item.description)
 
-        # Genero el HTML de acciones (igual que antes)
+        # Genera el HTML para las acciones disponibles en el dropdown
         actions = f'''
-        <a class="dropdown-item"
-           href="{reverse('generate_rfq_pdf', args=[rfq.id])}"
-           target="_blank">
-           <i class="mdi mdi-eye"></i> Ver solicitud
-        </a>
-        <a class="dropdown-item"
-           href="{reverse('edit_quote_request', args=[rfq.id])}">
-           <i class="mdi mdi-pencil"></i> Editar
-        </a>
-        <form method="POST"
-              action="{reverse('delete_rfq', args=[rfq.id])}"
-              class="dropdown-item">
-            <input type="hidden"
-                   name="csrfmiddlewaretoken"
-                   value="{get_token(request)}">
-            <button type="submit"
-                    class="btn btn-link text-danger p-0 m-0"
-                    style="border:none; background:none;">
-                <i class="mdi mdi-delete"></i> Eliminar
-            </button>
-        </form>
+            <a class="dropdown-item"
+               href="{reverse('generate_rfq_pdf', args=[rfq.id])}"
+               target="_blank">
+               <i class="mdi mdi-eye"></i> Ver solicitud
+            </a>
+            <a class="dropdown-item"
+               href="{reverse('edit_quote_request', args=[rfq.id])}">
+               <i class="mdi mdi-pencil"></i> Editar
+            </a>
+            <form method="POST"
+                  action="{reverse('delete_rfq', args=[rfq.id])}"
+                  class="dropdown-item">
+                <input type="hidden"
+                       name="csrfmiddlewaretoken"
+                       value="{get_token(request)}">
+                <button type="submit"
+                        class="btn btn-link text-danger p-0 m-0"
+                        style="border:none; background:none;">
+                    <i class="mdi mdi-delete"></i> Eliminar
+                </button>
+            </form>
         '''
 
+        # Agrega el botón "Seleccionar mejor cotización" habilitado o deshabilitado según corresponda
+        if can_select_best:
+            select_button_html = f'''<a class="dropdown-item" href="{reverse('compare_quotes', args=[rfq.id])}"><i class="mdi mdi-check"></i> Adjudicar</a>'''
+        else:
+            select_button_html = f'''<a class="dropdown-item" href="javascript:void(0);" disabled title="No disponible hasta que todos respondan"><i class="mdi mdi-assignment-check"></i> Adjudicar</a>'''
+
+        actions += select_button_html
+
+        # Construye el HTML final para las acciones
         actions_html = f'''
-        <div class="btn-group btn-group-sm">
-            <button type="button"
-                    class="btn btn-info dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                Acciones
-            </button>
-            <div class="dropdown-menu">
-                {actions}
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Acciones</button>
+                <div class="dropdown-menu">
+                    {actions}
+                </div>
             </div>
-        </div>
         '''
-        unique_products = list(set(products))
-        unique_products.sort()
+
+        # Ordena y formatea la lista de productos para mostrar en la tabla
+        unique_products = sorted(set(products))
         products_html = ''.join([f'<p class="m-0 p-0 text-nowrap">{p}</p>' for p in unique_products]) if unique_products else '<p class="m-0 p-0">Ninguno</p>'
 
-        # Construyo la fila JSON
+        # Agrega los datos formateados de esta RFQ al listado final de la tabla
         data.append({
             'id': str(rfq.id),
             'products': products_html,
@@ -371,7 +379,9 @@ def admin_quote_requests_table(request):
             'actions': actions_html,
         })
 
+    # Devuelve la respuesta en formato JSON para llenar la tabla con AJAX
     return JsonResponse({'data': data})
+
 
 
 @login_required
@@ -1067,3 +1077,57 @@ def load_quote(request, quote_request_id):
     # Si es GET, devolvemos el form vacío (ligado a la instancia) para que lo cargue el AJAX de JS
     form = SupplierQuoteForm(instance=quote)
     return render(request, 'supplier/modals/load_quote_form.html', {'form': form})
+
+@login_required
+@csrf_exempt
+def select_best_quote(request, rfq_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    rfq = get_object_or_404(RFQ, id=rfq_id)
+
+    # Aquí va la lógica para seleccionar la mejor cotización.
+    # Por ejemplo, tomar la cotización con el menor precio, o alguna lógica de negocio.
+
+    best_quote = rfq.quotes.filter(status='COTIZADA').order_by('total_price').first()
+
+    if not best_quote:
+        return JsonResponse({'error': 'No hay cotizaciones para adjudicar'}, status=400)
+
+    # Marcar la cotización como aceptada
+    best_quote.status = 'ACEPTADA'
+    best_quote.save()
+
+    # Opcional: actualizar el RFQ o cotizaciones restantes según tu lógica
+    # Por ejemplo, rechazar otras cotizaciones o cerrar el RFQ
+
+    return JsonResponse({'success': True})
+
+@login_required
+def compare_quotes(request, rfq_id):
+    rfq = get_object_or_404(RFQ, id=rfq_id)
+
+    # Obtén todas las cotizaciones para este RFQ que no estén pendientes
+    quotes = rfq.quotes.exclude(status='PENDIENTE')
+
+    context = {'rfq': rfq, 'quotes': quotes}
+    return render(request, 'supplier/compare_quotes.html', context)
+
+
+@login_required
+@require_POST
+def adjudicate_quote(request, quote_id):
+    quote = get_object_or_404(SupplierQuote, id=quote_id)
+    rfq = quote.rfq
+
+    # Marcar esta cotización como aceptada
+    quote.status = 'ACEPTADA'
+    quote.save()
+
+    # Rechazar las otras cotizaciones de la misma RFQ
+    other_quotes = rfq.quotes.exclude(id=quote_id)
+    other_quotes.update(status='RECHAZADA')
+
+    # Aquí puedes agregar lógica para notificar a proveedores, etc.
+
+    return redirect('admin_quote_requests')  # Ajusta al nombre correcto de la vista de lista
