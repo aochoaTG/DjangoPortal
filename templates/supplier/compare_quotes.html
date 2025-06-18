@@ -13,14 +13,14 @@
         <div class="card card-widget widget-user">
             <!-- Add the bg color to the header using any of the bg-* classes -->
             <div class="widget-user-header bg-info">
-                <h3 class="widget-user-username">{{ quote.supplier.company_name }}</h3>
-                <h5 class="widget-user-desc">{{ quote.supplier.rfc }}</h5>
+                <h3 class="widget-user-username">{{ quote.supplier.company_name | title }}</h3>
+                <h5 class="widget-user-desc">{{ quote.supplier.rfc | upper }}</h5>
             </div>
             <div class="card-footer">
                 <div class="row">
                     <div class="col-sm-4 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">$100.00</h5>
+                        <h5 class="description-header">${{ quote.total|floatformat:2 }}</h5>
                         <span class="description-text">Precio final</span>
                     </div>
                     <!-- /.description-block -->

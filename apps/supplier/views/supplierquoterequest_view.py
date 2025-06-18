@@ -26,6 +26,8 @@ from apps.supplier.models           import Supplier, SupplierQuote, SupplierQuot
 from apps.supplier.services         import sql_scripts
 from apps.supplier.forms            import *
 from common.utils                   import *
+from django.db.models               import Sum
+
 
 
 @login_required
@@ -1107,12 +1109,23 @@ def select_best_quote(request, rfq_id):
 def compare_quotes(request, rfq_id):
     rfq = get_object_or_404(RFQ, id=rfq_id)
 
-    # Obtén todas las cotizaciones para este RFQ que no estén pendientes
-    quotes = rfq.quotes.exclude(status='PENDIENTE')
+    # Primero obtenemos todas las quote requests asociadas al RFQ
+    quote_requests = SupplierQuoteRequest.objects.filter(rfq=rfq)
 
-    context = {'rfq': rfq, 'quotes': quotes}
+    # Luego filtramos las cotizaciones (quotes) de esas quote_requests
+    quotes = SupplierQuote.objects.filter(
+        quote_request__in=quote_requests
+    ).exclude(status='PENDIENTE')
+
+    # Sumar total
+    total_sum = quotes.aggregate(total=Sum('total'))['total'] or 0
+
+    context = {
+        'rfq': rfq,
+        'quotes': quotes,
+        'total_sum': total_sum
+    }
     return render(request, 'supplier/compare_quotes.html', context)
-
 
 @login_required
 @require_POST
